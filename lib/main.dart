@@ -1,4 +1,3 @@
-import 'package:carex_flutter/ui/router.dart';
 import 'package:carex_flutter/ui/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -12,10 +11,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Carex',
       theme: ThemeData(),
-      initialRoute: MainScreen.id,
-      onGenerateRoute: generateRoutes,
+      home: MainScreen(),
+      /*initialRoute: MainScreen.id,
+      onGenerateRoute: generateRoutes,*/
     );
   }
 }
