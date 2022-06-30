@@ -1,3 +1,4 @@
+import 'package:carex_flutter/main.dart';
 import 'package:carex_flutter/ui/router.dart';
 import 'package:carex_flutter/ui/screens/mycar_screen.dart';
 import 'package:carex_flutter/ui/screens/vehicles_screen.dart';
@@ -13,8 +14,6 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
-
   var _currentRoute = MyCarScreen.id;
 
   @override

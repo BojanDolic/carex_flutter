@@ -1,7 +1,16 @@
+import 'package:carex_flutter/services/store/objectbox_store.dart';
 import 'package:carex_flutter/ui/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
+
+late ObjectBox objectBox;
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  objectBox = await ObjectBox.create();
+
   runApp(const MyApp());
 }
 
