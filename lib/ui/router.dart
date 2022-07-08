@@ -1,7 +1,8 @@
-import 'package:carex_flutter/main.dart';
-import 'package:carex_flutter/services/bloc/vehicles_bloc.dart';
+import 'package:carex_flutter/services/bloc/events/myvehicle_bloc_events.dart';
+import 'package:carex_flutter/services/bloc/myvehicle_bloc.dart';
 import 'package:carex_flutter/services/repositories/repository.dart';
 import 'package:carex_flutter/ui/screens/add_vehicle_screen.dart';
+import 'package:carex_flutter/ui/screens/main_screen.dart';
 import 'package:carex_flutter/ui/screens/mycar_screen.dart';
 import 'package:carex_flutter/ui/screens/vehicles_screen.dart';
 import 'package:flutter/cupertino.dart';
@@ -15,29 +16,40 @@ Route<dynamic>? generateRoutes(RouteSettings settings) {
     case MyCarScreen.id:
       {
         return PageRouteBuilder(
-          pageBuilder: (context, _, __) => const MyCarScreen(),
+          maintainState: false,
+          transitionDuration: Duration.zero,
+          pageBuilder: (context, _, __) => BlocProvider(
+            create: (BuildContext context) => MyVehicleBloc(
+              RepositoryProvider.of<Repository>(context),
+            )..add(
+                LoadVehicles(
+                  vehicles: RepositoryProvider.of<Repository>(context).getAllVehicles(),
+                  selectedVehicle: RepositoryProvider.of<Repository>(context).getSelectedVehicle(),
+                ),
+              ),
+            child: const MyCarScreen(),
+          ),
         );
       }
     case VehiclesScreen.id:
       {
         return PageRouteBuilder(
-          pageBuilder: (context, _, __) => RepositoryProvider(
-            create: (BuildContext context) => Repository(objectBox),
-            child: BlocProvider(
-              create: (BuildContext context) => VehiclesBloc(
-                RepositoryProvider.of<Repository>(context),
-              ),
-              child: VehiclesScreen(
-                navigatorKey: navigatorKey,
-              ),
-            ),
-          ),
+          transitionDuration: Duration.zero,
+          pageBuilder: (context, _, __) => VehiclesScreen(),
         );
       }
     case AddVehicleScreen.id:
       {
         return PageRouteBuilder(
+          transitionDuration: Duration.zero,
           pageBuilder: (context, _, __) => const AddVehicleScreen(),
+        );
+      }
+    case MainScreen.id:
+      {
+        return PageRouteBuilder(
+          transitionDuration: Duration.zero,
+          pageBuilder: (context, _, __) => const MainScreen(),
         );
       }
     default:
