@@ -1,4 +1,4 @@
-import 'package:carex_flutter/ui/screens/main_screen.dart';
+import 'package:carex_flutter/ui/screens/costs_screen.dart';
 import 'package:carex_flutter/ui/screens/mycar_screen.dart';
 import 'package:carex_flutter/ui/screens/vehicles_screen.dart';
 import 'package:carex_flutter/util/constants/color_constants.dart';
@@ -74,8 +74,8 @@ class CarexDrawer extends StatelessWidget {
                   selectedTileColor: mainColorLight.withOpacity(0.15),
                   selectedColor: mainColorLight,
                   leading: const Icon(Icons.attach_money_rounded),
-                  onTap: () => _handleDrawerTap(context, MainScreen.id),
-                  selected: currentRoute == MainScreen.id,
+                  onTap: () => _handleDrawerTap(context, CostsScreen.id),
+                  selected: currentRoute == CostsScreen.id,
                 ),
               ],
             ),

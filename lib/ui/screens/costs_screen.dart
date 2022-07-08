@@ -1,24 +1,21 @@
-import 'package:carex_flutter/ui/screens/mycar_screen.dart';
 import 'package:carex_flutter/ui/widgets/drawer.dart';
 import 'package:flutter/material.dart';
 
-class MainScreen extends StatefulWidget {
-  const MainScreen({Key? key}) : super(key: key);
+class CostsScreen extends StatefulWidget {
+  const CostsScreen({Key? key}) : super(key: key);
 
   static const id = "/mainScreenTest";
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<CostsScreen> createState() => _CostsScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
-  var _currentRoute = MyCarScreen.id;
-
+class _CostsScreenState extends State<CostsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: CarexDrawer(
-        currentRoute: MainScreen.id,
+        currentRoute: CostsScreen.id,
       ),
       appBar: AppBar(
         title: Text("Test"),
