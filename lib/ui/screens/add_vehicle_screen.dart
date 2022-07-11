@@ -16,9 +16,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AddVehicleScreen extends StatefulWidget {
-  const AddVehicleScreen({Key? key}) : super(key: key);
+  const AddVehicleScreen({
+    Key? key,
+    this.vehicle,
+  }) : super(key: key);
 
   static const id = "/vehicles/add_vehicle";
+  final Vehicle? vehicle;
 
   @override
   State<AddVehicleScreen> createState() => _AddVehicleScreenState();
@@ -26,7 +30,7 @@ class AddVehicleScreen extends StatefulWidget {
 
 class _AddVehicleScreenState extends State<AddVehicleScreen> {
   String? manufacturer;
-  String? engineDisplacement;
+  String? _engineDisplacement;
   String? modelYear;
 
   final modelNameController = TextEditingController();
@@ -40,13 +44,23 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   Vehicle _vehicle = Vehicle();
 
   @override
+  void initState() {
+    WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
+      if (widget.vehicle != null) {
+        _loadData(widget.vehicle!);
+      }
+    });
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Add new vehicle",
+        title: Text(
+          widget.vehicle != null ? _vehicle.model : "Add new vehicle",
         ),
         actions: [
           IconButton(
@@ -142,15 +156,15 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                     children: [
                       DropdownList<String>(
                           hint: "Engine displacement",
-                          items: engineDisplacements,
-                          selectedValue: engineDisplacement,
+                          items: getEngineDisplacements(),
+                          selectedValue: _engineDisplacement,
                           validator: (displacement) => ValidatorUtil.validateEmptyText(
                                 displacement,
                                 errorMessage: "You need to select engine displacement",
                               ),
                           onSelected: (displacement) => {
                                 setState(() {
-                                  engineDisplacement = displacement;
+                                  _engineDisplacement = displacement;
                                 })
                               }),
                       const SizedBox(
@@ -177,6 +191,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                       DropdownList<String>(
                         hint: "Model year",
                         items: getModelYears(),
+                        selectedValue: modelYear,
                         validator: (year) => ValidatorUtil.validateEmptyText(
                           year,
                           errorMessage: "You need to select model year!",
@@ -265,14 +280,11 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     }
   }
 
-  bool isDataValid() {
-    return (_formKey.currentState?.validate())! && manufacturer != null && engineDisplacement != null;
-  }
-
   void _parseData() {
     final _modelName = modelNameController.text;
     final _enginePower = int.parse(enginePowerController.text);
     final _manufacturer = manufacturer!;
+    final _displacement = _engineDisplacement!;
     final _modelYear = int.parse(modelYear!);
     final imagePath = pickedImage?.path;
 
@@ -283,13 +295,19 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         imagePath: imagePath,
         kwPower: _enginePower,
         modelYear: _modelYear,
+        engineDisplacement: _displacement,
       );
     } else {
-      _vehicle.model = _modelName;
-      _vehicle.manufacturer = _manufacturer;
-      _vehicle.imagePath = imagePath;
-      _vehicle.kwPower = _enginePower;
-      _vehicle.modelYear = _modelYear;
+      _vehicle = Vehicle(
+        id: _vehicle.id,
+        model: _modelName,
+        manufacturer: _manufacturer,
+        imagePath: imagePath,
+        kwPower: _enginePower,
+        modelYear: _modelYear,
+        engineDisplacement: _displacement,
+        selected: _vehicle.selected,
+      );
     }
 
     _insertVehicle(_vehicle);
@@ -301,6 +319,18 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     );
 
     Navigator.pop(context);
+  }
+
+  void _loadData(Vehicle vehicle) {
+    setState(() {
+      _vehicle = vehicle;
+      enginePowerController.text = _vehicle.kwPower.toString();
+      modelNameController.text = _vehicle.model;
+      manufacturer = _vehicle.manufacturer;
+      _engineDisplacement = _vehicle.engineDisplacement;
+      modelYear = _vehicle.modelYear.toString();
+      pickedImage = _vehicle.imagePath != null ? XFile(_vehicle.imagePath!) : null;
+    });
   }
 }
 

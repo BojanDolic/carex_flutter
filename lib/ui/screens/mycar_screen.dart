@@ -48,6 +48,7 @@ class _MyCarScreenState extends State<MyCarScreen> {
                     ),
                     child: vehicles.isNotEmpty
                         ? DropdownButton<Vehicle>(
+                            hint: Text("Select vehicle"),
                             autofocus: false,
                             isExpanded: true,
                             value: state.selectedVehicle,

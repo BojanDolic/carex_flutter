@@ -16,9 +16,11 @@ class VehiclesBloc extends Bloc<VehicleBlocEvent, VehiclesState> {
   }
 
   FutureOr<void> _loadVehicles(LoadVehicles event, Emitter<VehiclesState> emit) {
+    final vehicles = _repository.getAllVehicles().toList();
+
     emit(
       LoadedVehicles(
-        vehicles: _repository.getAllVehicles(),
+        vehicles: vehicles,
       ),
     );
   }

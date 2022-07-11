@@ -1,5 +1,6 @@
 import 'package:carex_flutter/services/bloc/events/myvehicle_bloc_events.dart';
 import 'package:carex_flutter/services/bloc/myvehicle_bloc.dart';
+import 'package:carex_flutter/services/models/vehicle.dart';
 import 'package:carex_flutter/services/repositories/repository.dart';
 import 'package:carex_flutter/ui/screens/add_vehicle_screen.dart';
 import 'package:carex_flutter/ui/screens/costs_screen.dart';
@@ -42,7 +43,12 @@ Route<dynamic>? generateRoutes(RouteSettings settings) {
       {
         return PageRouteBuilder(
           transitionDuration: Duration.zero,
-          pageBuilder: (context, _, __) => const AddVehicleScreen(),
+          pageBuilder: (context, _, __) {
+            final vehicleArgs = (settings.arguments) as Vehicle?;
+            return AddVehicleScreen(
+              vehicle: vehicleArgs,
+            );
+          },
         );
       }
     case CostsScreen.id:

@@ -9,7 +9,7 @@ abstract class MyVehicleBlocEvent extends Equatable {
 }
 
 class LoadVehicles extends MyVehicleBlocEvent {
-  final Vehicle selectedVehicle;
+  final Vehicle? selectedVehicle;
   final List<Vehicle> vehicles;
 
   const LoadVehicles({

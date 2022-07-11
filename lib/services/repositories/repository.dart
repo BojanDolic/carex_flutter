@@ -1,7 +1,6 @@
 import 'package:carex_flutter/objectbox.g.dart';
 import 'package:carex_flutter/services/models/vehicle.dart';
 import 'package:carex_flutter/services/store/objectbox_store.dart';
-import 'package:objectbox/objectbox.dart';
 
 class Repository {
   late Box<Vehicle> _vehiclesBox;
@@ -14,6 +13,12 @@ class Repository {
 
   List<Vehicle> getAllVehicles() {
     return _vehiclesBox.getAll();
+  }
+
+  Stream<Vehicle> getAllVehiclesStream() {
+    final _queryBuilder = _vehiclesBox.query();
+    final _query = _queryBuilder.build();
+    return _query.stream();
   }
 
   void insertVehicle(Vehicle vehicle) {
@@ -39,7 +44,7 @@ class Repository {
     _vehiclesBox.putMany(modifiedVehicles.toList());
   }
 
-  Vehicle getSelectedVehicle() {
+  Vehicle? getSelectedVehicle() {
     final _queryBuilder = _vehiclesBox.query(Vehicle_.selected.equals(true));
 
     final query = _queryBuilder.build();
@@ -49,7 +54,7 @@ class Repository {
       return vehicle;
     } catch (badState) {
       query.close();
-      return Vehicle(model: "Error");
+      return null;
     }
   }
 }

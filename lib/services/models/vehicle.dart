@@ -3,19 +3,21 @@ import 'package:objectbox/objectbox.dart';
 
 @Entity()
 class Vehicle extends Equatable {
-  int id = 0;
-  bool selected = false;
-  String manufacturer = "";
-  String model = "";
-  int modelYear = 0000;
-  int kwPower = 0;
-  String? imagePath = "";
+  int id;
+  bool selected;
+  String manufacturer;
+  String model;
+  String engineDisplacement;
+  int modelYear;
+  int kwPower;
+  String? imagePath;
 
   Vehicle({
     this.id = 0,
     this.selected = false,
     this.manufacturer = "Unknown",
     this.model = "Unknown",
+    this.engineDisplacement = "",
     this.modelYear = 0000,
     this.kwPower = 0,
     this.imagePath = "",
@@ -24,7 +26,7 @@ class Vehicle extends Equatable {
   bool get isNewObject => id == 0;
 
   @override
-  List<Object?> get props => [selected, manufacturer, model, modelYear, kwPower, imagePath];
+  List<Object?> get props => [id, selected, manufacturer, model, engineDisplacement, modelYear, kwPower, imagePath];
 
   @override
   String toString() {

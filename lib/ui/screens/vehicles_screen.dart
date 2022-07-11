@@ -47,16 +47,18 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
               physics: const BouncingScrollPhysics(),
               itemBuilder: (context, index) {
                 final vehicle = state.vehicles[index];
-                WidgetsFlutterBinding.ensureInitialized();
                 if (state.vehicles.length == 1) {
-                  WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
-                    _handleSelection(state.vehicles.first);
-                  });
+                  WidgetsBinding.instance?.addPostFrameCallback(
+                    (timeStamp) {
+                      _handleSelection(state.vehicles.first);
+                    },
+                  );
                 }
                 return VehicleItem(
                   vehicle: vehicle,
                   onLongPress: () => _handleDelete(vehicle),
                   onPopupItemSelected: (value) => _handlePopupMenuSelection(value, vehicle),
+                  onTap: () => _editVehicle(vehicle),
                 );
               },
             );
@@ -141,6 +143,10 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
       duration: const Duration(seconds: 2),
     );
   }
+
+  _editVehicle(Vehicle vehicle) {
+    Navigator.pushNamed(context, AddVehicleScreen.id, arguments: vehicle);
+  }
 }
 
 class VehicleItem extends StatelessWidget {
@@ -149,88 +155,93 @@ class VehicleItem extends StatelessWidget {
     required this.vehicle,
     required this.onLongPress,
     required this.onPopupItemSelected,
+    this.onTap,
   }) : super(key: key);
 
   final Vehicle vehicle;
   final void Function()? onLongPress;
+  final void Function()? onTap;
   final void Function(VehiclesMenuOptions)? onPopupItemSelected;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return SizedBox(
-      height: 200,
-      child: Card(
-        margin: const EdgeInsets.all(9),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Stack(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: vehicle.imagePath != null
-                  ? Image.file(
-                      File(vehicle.imagePath ?? ""),
-                      height: 200,
-                      width: double.maxFinite,
-                      fit: BoxFit.cover,
-                    )
-                  : Image.asset(
-                      "assets/placeholder_car.jpg",
-                      height: 200,
-                      width: double.maxFinite,
-                      fit: BoxFit.cover,
-                    ),
-            ),
-            Container(
-              decoration: BoxDecoration(
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        height: 200,
+        child: Card(
+          margin: const EdgeInsets.all(9),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Stack(
+            children: [
+              ClipRRect(
                 borderRadius: BorderRadius.circular(24),
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.7),
-                    Colors.black.withOpacity(0.2),
-                    Colors.transparent,
-                  ],
+                child: vehicle.imagePath != null
+                    ? Image.file(
+                        File(vehicle.imagePath ?? ""),
+                        height: 200,
+                        width: double.maxFinite,
+                        fit: BoxFit.cover,
+                      )
+                    : Image.asset(
+                        "assets/placeholder_car.jpg",
+                        height: 200,
+                        width: double.maxFinite,
+                        fit: BoxFit.cover,
+                      ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.7),
+                      Colors.black.withOpacity(0.2),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 12,
-                left: 16,
-                right: 3,
-                bottom: 3,
-              ),
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        vehicle.model,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.displayLarge?.copyWith(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: .25,
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 12,
+                  left: 16,
+                  right: 3,
+                  bottom: 3,
+                ),
+                child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          vehicle.model,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.displayLarge?.copyWith(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: .25,
+                          ),
                         ),
                       ),
-                    ),
-                    PopupMenu(
-                      onPopupItemSelected: onPopupItemSelected,
-                      vehicle: vehicle,
-                    )
-                  ],
+                      PopupMenu(
+                        onPopupItemSelected: onPopupItemSelected,
+                        vehicle: vehicle,
+                      )
+                    ],
+                  ),
                 ),
-              ),
-            )
-          ],
+              )
+            ],
+          ),
         ),
       ),
     );

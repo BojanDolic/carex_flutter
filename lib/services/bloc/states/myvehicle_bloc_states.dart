@@ -16,7 +16,7 @@ class InitialState extends MyVehicleBlocState {
 }
 
 class LoadedVehicleState extends MyVehicleBlocState {
-  final Vehicle selectedVehicle;
+  final Vehicle? selectedVehicle;
   final List<Vehicle> allVehicles;
 
   const LoadedVehicleState({required this.selectedVehicle, required this.allVehicles});

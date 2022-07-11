@@ -28,6 +28,8 @@ List<String> getModelYears() {
   return modelYears;
 }
 
+List<String> getEngineDisplacements() => engineDisplacements;
+
 const engineDisplacements = [
   "1.0",
   "1.1",
