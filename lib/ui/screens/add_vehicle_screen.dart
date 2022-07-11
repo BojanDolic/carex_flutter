@@ -32,6 +32,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   String? manufacturer;
   String? _engineDisplacement;
   String? modelYear;
+  String? fuelType;
 
   final modelNameController = TextEditingController();
   final enginePowerController = TextEditingController();
@@ -202,6 +203,19 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           });
                         },
                       ),
+                      const SizedBox(
+                        height: 9,
+                      ),
+                      DropdownList<String>(
+                        hint: "Fuel type",
+                        items: fuelTypes,
+                        selectedValue: fuelType,
+                        onSelected: (fuel) {
+                          setState(() {
+                            fuelType = fuel;
+                          });
+                        },
+                      ),
                     ],
                   )
                 ],
@@ -287,6 +301,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     final _displacement = _engineDisplacement!;
     final _modelYear = int.parse(modelYear!);
     final imagePath = pickedImage?.path;
+    final _fuelType = fuelType!;
 
     if (_vehicle.isNewObject) {
       _vehicle = Vehicle(
@@ -296,6 +311,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         kwPower: _enginePower,
         modelYear: _modelYear,
         engineDisplacement: _displacement,
+        fuelType: _fuelType,
       );
     } else {
       _vehicle = Vehicle(
@@ -307,6 +323,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         modelYear: _modelYear,
         engineDisplacement: _displacement,
         selected: _vehicle.selected,
+        fuelType: _fuelType,
       );
     }
 
@@ -330,6 +347,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       _engineDisplacement = _vehicle.engineDisplacement;
       modelYear = _vehicle.modelYear.toString();
       pickedImage = _vehicle.imagePath != null ? XFile(_vehicle.imagePath!) : null;
+      fuelType = _vehicle.fuelType == "" ? null : _vehicle.fuelType;
     });
   }
 }
