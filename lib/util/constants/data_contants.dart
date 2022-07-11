@@ -6,3 +6,8 @@ enum VehiclesMenuOptions {
   selectVehicle,
   deleteVehicle,
 }
+
+enum FuelType {
+  diesel,
+  gasoline,
+}

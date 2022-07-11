@@ -30,6 +30,11 @@ List<String> getModelYears() {
 
 List<String> getEngineDisplacements() => engineDisplacements;
 
+const fuelTypes = [
+  "Diesel",
+  "Gasoline/Petrol",
+];
+
 const engineDisplacements = [
   "1.0",
   "1.1",

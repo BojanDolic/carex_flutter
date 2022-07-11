@@ -8,6 +8,7 @@ class Vehicle extends Equatable {
   String manufacturer;
   String model;
   String engineDisplacement;
+  String fuelType;
   int modelYear;
   int kwPower;
   String? imagePath;
@@ -18,6 +19,7 @@ class Vehicle extends Equatable {
     this.manufacturer = "Unknown",
     this.model = "Unknown",
     this.engineDisplacement = "",
+    this.fuelType = "",
     this.modelYear = 0000,
     this.kwPower = 0,
     this.imagePath = "",
@@ -26,7 +28,7 @@ class Vehicle extends Equatable {
   bool get isNewObject => id == 0;
 
   @override
-  List<Object?> get props => [id, selected, manufacturer, model, engineDisplacement, modelYear, kwPower, imagePath];
+  List<Object?> get props => [id, selected, manufacturer, model, engineDisplacement, fuelType, modelYear, kwPower, imagePath];
 
   @override
   String toString() {
