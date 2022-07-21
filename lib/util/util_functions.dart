@@ -1,5 +1,70 @@
+import 'dart:io';
+
+import 'package:carex_flutter/util/constants/color_constants.dart';
+import 'package:carex_flutter/util/constants/ui_constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+class WidgetUtil {
+  static Widget getIconBasedOnCostType(String costType, [double iconSize = 32]) {
+    switch (costType) {
+      case "Fuel":
+        {
+          return Icon(
+            Icons.local_gas_station,
+            color: Colors.red,
+            size: iconSize,
+          );
+        }
+      case "Service":
+        {
+          return Icon(
+            Icons.build_rounded,
+            color: Colors.blue,
+            size: iconSize,
+          );
+        }
+      case "Maintenance":
+        {
+          return Icon(
+            Icons.build,
+            color: mainColor,
+            size: iconSize,
+          );
+        }
+      default:
+        {
+          return Icon(
+            Icons.error,
+            size: iconSize,
+          );
+        }
+    }
+  }
+/*
+  "Parking",
+  "Registration",*/
+
+  static Widget getVehiclePicture(String? imagePath, [double? borderRadius]) {
+    if (imagePath != null) {
+      return ClipRRect(
+        borderRadius: borderRadius != null ? BorderRadius.circular(borderRadius) : InterfaceUtil.allBorderRadius9,
+        child: Image.file(
+          File(imagePath),
+          fit: BoxFit.cover,
+        ),
+      );
+    } else {
+      return ClipRRect(
+        borderRadius: borderRadius != null ? BorderRadius.circular(borderRadius) : InterfaceUtil.allBorderRadius9,
+        child: Image.asset(
+          "assets/placeholder_car.jpg",
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+  }
+}
 
 class SnackBarUtil {
   static void showInfoSnackBar(
@@ -27,5 +92,35 @@ class ValidatorUtil {
     } else {
       return errorMessage;
     }
+  }
+}
+
+class ParserUtil {
+  static String parseTimeISO8601(TimeOfDay time) {
+    String formattedTime = "";
+
+    final hour = time.hour;
+    final minute = time.minute;
+
+    final formattedHour = hour < 10 ? "0$hour" : "$hour";
+    final formattedMinutes = minute < 10 ? "0$minute" : "$minute";
+
+    formattedTime = "$formattedHour:$formattedMinutes";
+    return formattedTime;
+  }
+
+  static String parseDateISO8601(DateTime date) {
+    String formattedTime = "";
+
+    final year = date.year;
+    final month = date.month;
+    final day = date.day;
+
+    final formattedYear = "$year";
+    final formattedMonth = month < 10 ? "0$month" : "$month";
+    final formattedDay = day < 10 ? "0$day" : "$day";
+
+    formattedTime = "$formattedYear-$formattedMonth-$formattedDay";
+    return formattedTime;
   }
 }

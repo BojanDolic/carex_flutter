@@ -8,6 +8,13 @@ class InterfaceUtil {
     bottomLeft: Radius.circular(16),
   );
 
+  static const allBorderRadius9 = BorderRadius.only(
+    topLeft: Radius.circular(9),
+    topRight: Radius.circular(9),
+    bottomRight: Radius.circular(9),
+    bottomLeft: Radius.circular(9),
+  );
+
   static const topCornerRoundedRectangle16 = RoundedRectangleBorder(
     borderRadius: BorderRadius.only(
       topLeft: Radius.circular(16),

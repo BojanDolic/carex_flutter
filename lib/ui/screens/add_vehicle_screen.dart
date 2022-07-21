@@ -1,7 +1,7 @@
 import 'dart:io';
 
+import 'package:carex_flutter/services/bloc/blocs/vehicles_bloc.dart';
 import 'package:carex_flutter/services/bloc/events/vehicles_bloc_events.dart';
-import 'package:carex_flutter/services/bloc/vehicles_bloc.dart';
 import 'package:carex_flutter/services/models/vehicle.dart';
 import 'package:carex_flutter/ui/widgets/heading_container.dart';
 import 'package:carex_flutter/util/constants/color_constants.dart';
@@ -425,6 +425,10 @@ class InputField extends StatelessWidget {
     this.maxLength,
     this.controller,
     this.textInputAction,
+    this.trailing,
+    this.enabled,
+    this.editable,
+    this.focusNode,
   }) : super(key: key);
 
   final double? borderRadius;
@@ -436,12 +440,17 @@ class InputField extends StatelessWidget {
   final int? maxLength;
   final TextEditingController? controller;
   final TextInputAction? textInputAction;
+  final Widget? trailing;
+  final bool? enabled;
+  final bool? editable;
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     return TextFormField(
+      focusNode: focusNode,
       controller: controller,
       cursorColor: theme.primaryColor,
       style: textTheme.bodyMedium,
@@ -452,7 +461,10 @@ class InputField extends StatelessWidget {
       maxLength: maxLength,
       textInputAction: textInputAction,
       autovalidateMode: AutovalidateMode.onUserInteraction,
+      enabled: enabled,
+      readOnly: editable ?? false,
       decoration: InputDecoration(
+        suffix: trailing,
         border: OutlineInputBorder(
           borderSide: BorderSide(
             color: borderColor,

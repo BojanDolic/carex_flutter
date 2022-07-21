@@ -1,3 +1,4 @@
+import 'package:carex_flutter/services/models/cost.dart';
 import 'package:equatable/equatable.dart';
 import 'package:objectbox/objectbox.dart';
 
@@ -12,6 +13,9 @@ class Vehicle extends Equatable {
   int modelYear;
   int kwPower;
   String? imagePath;
+
+  @Backlink("vehicle")
+  final costs = ToMany<Cost>();
 
   Vehicle({
     this.id = 0,
@@ -28,7 +32,7 @@ class Vehicle extends Equatable {
   bool get isNewObject => id == 0;
 
   @override
-  List<Object?> get props => [id, selected, manufacturer, model, engineDisplacement, fuelType, modelYear, kwPower, imagePath];
+  List<Object?> get props => [id, selected, manufacturer, model, engineDisplacement, fuelType, modelYear, kwPower, imagePath, costs];
 
   @override
   String toString() {

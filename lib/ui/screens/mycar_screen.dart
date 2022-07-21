@@ -1,13 +1,15 @@
 import 'dart:io';
 
+import 'package:carex_flutter/services/bloc/blocs/myvehicle_bloc.dart';
 import 'package:carex_flutter/services/bloc/events/myvehicle_bloc_events.dart';
-import 'package:carex_flutter/services/bloc/myvehicle_bloc.dart';
 import 'package:carex_flutter/services/bloc/states/myvehicle_bloc_states.dart';
+import 'package:carex_flutter/services/models/cost.dart';
 import 'package:carex_flutter/services/models/vehicle.dart';
 import 'package:carex_flutter/ui/widgets/drawer.dart';
 import 'package:carex_flutter/util/constants/ui_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:grouped_list/grouped_list.dart';
 
 class MyCarScreen extends StatefulWidget {
   const MyCarScreen({Key? key}) : super(key: key);
@@ -28,6 +30,7 @@ class _MyCarScreenState extends State<MyCarScreen> {
       builder: (BuildContext context, state) {
         if (state is LoadedVehicleState) {
           final vehicles = state.allVehicles;
+          final selectedVehicle = state.selectedVehicle;
           return Scaffold(
             appBar: AppBar(
               elevation: 0,
@@ -51,7 +54,7 @@ class _MyCarScreenState extends State<MyCarScreen> {
                             hint: Text("Select vehicle"),
                             autofocus: false,
                             isExpanded: true,
-                            value: state.selectedVehicle,
+                            //value: state.selectedVehicle,
                             dropdownColor: Colors.white,
                             borderRadius: InterfaceUtil.allBorderRadius16,
                             elevation: 2,
@@ -104,19 +107,34 @@ class _MyCarScreenState extends State<MyCarScreen> {
             drawer: const CarexDrawer(
               currentRoute: MyCarScreen.id,
             ),
-            body: Center(
-              child: GestureDetector(
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => SimpleDialog(
-                      title: Text("Title dialog"),
-                    ),
-                  );
-                },
-                child: Text(
-                  "Home page my car screen",
-                ),
+            body: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 12,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  selectedVehicle != null
+                      ? Expanded(
+                          child: GroupedListView<Cost, String>(
+                            elements: selectedVehicle.costs.toList(),
+                            groupBy: (cost) => DateTime.parse(cost.date).toString(),
+                            groupHeaderBuilder: (cost) {
+                              return Text(DateTime.parse(cost.date).toString());
+                            },
+                            itemBuilder: (context, costItem) {
+                              return ListTile(
+                                title: Text(costItem.title),
+                              );
+                            },
+                          ),
+                        )
+                      : const Text(
+                          "No vehicle to display data!",
+                          textAlign: TextAlign.center,
+                        ),
+                ],
               ),
             ),
           );

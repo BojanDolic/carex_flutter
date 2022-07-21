@@ -1,5 +1,5 @@
+import 'package:carex_flutter/services/bloc/blocs/vehicles_bloc.dart';
 import 'package:carex_flutter/services/bloc/events/vehicles_bloc_events.dart';
-import 'package:carex_flutter/services/bloc/vehicles_bloc.dart';
 import 'package:carex_flutter/services/repositories/repository.dart';
 import 'package:carex_flutter/services/store/objectbox_store.dart';
 import 'package:carex_flutter/ui/router.dart';
@@ -24,18 +24,6 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
-
-  /*
-  RepositoryProvider(
-            create: (BuildContext context) => Repository(objectBox),
-            child: BlocProvider(
-              create: (BuildContext context) => VehiclesBloc(
-                RepositoryProvider.of<Repository>(context),
-              ),
-              child: ,
-            ),
-          ),
-   */
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +105,12 @@ class MyApp extends StatelessWidget {
                 borderSide: BorderSide(
                   color: mainColorLight,
                   width: 1.7,
+                ),
+              ),
+              disabledBorder: OutlineInputBorder(
+                borderRadius: InterfaceUtil.allBorderRadius16,
+                borderSide: BorderSide(
+                  color: borderColor.withOpacity(0.8),
                 ),
               ),
               floatingLabelStyle: MaterialStateTextStyle.resolveWith(

@@ -35,6 +35,14 @@ const fuelTypes = [
   "Gasoline/Petrol",
 ];
 
+const costTypes = [
+  "Fuel",
+  "Service",
+  "Maintenance",
+  "Parking",
+  "Registration",
+];
+
 const engineDisplacements = [
   "1.0",
   "1.1",
