@@ -1,8 +1,11 @@
 import 'package:carex_flutter/services/bloc/blocs/costs_bloc.dart';
 import 'package:carex_flutter/services/bloc/events/costs_bloc_events.dart';
 import 'package:carex_flutter/services/models/cost.dart';
+import 'package:carex_flutter/services/models/vehicle.dart';
+import 'package:carex_flutter/services/preferences/preferences.dart';
 import 'package:carex_flutter/ui/screens/add_vehicle_screen.dart';
 import 'package:carex_flutter/ui/widgets/heading_container.dart';
+import 'package:carex_flutter/ui/widgets/settings_provider.dart';
 import 'package:carex_flutter/util/constants/list_constants.dart';
 import 'package:carex_flutter/util/util_functions.dart';
 import 'package:flutter/material.dart';
@@ -10,9 +13,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AddCostScreen extends StatefulWidget {
-  const AddCostScreen({Key? key}) : super(key: key);
+  const AddCostScreen({
+    Key? key,
+    this.selectedVehicle,
+    this.cost,
+  }) : super(key: key);
 
   static const id = "/costs/add_cost";
+
+  final Vehicle? selectedVehicle;
+  final Cost? cost;
 
   @override
   State<AddCostScreen> createState() => _AddCostScreenState();
@@ -23,6 +33,7 @@ class _AddCostScreenState extends State<AddCostScreen> {
 
   String? costType;
   final costDescriptionController = TextEditingController();
+  final odometerController = TextEditingController();
   final litersController = TextEditingController();
   final pricePerLiterController = TextEditingController();
   final totalCostController = TextEditingController();
@@ -42,10 +53,29 @@ class _AddCostScreenState extends State<AddCostScreen> {
   final partsPriceEditingControllers = <TextEditingController>[];
   final parts = <Widget>[];
 
+  Cost cost = Cost();
+
+  bool notifyParking = false;
+
+  late UserPreferences settings;
+
   @override
   void initState() {
-    dateController.text = ParserUtil.parseDateISO8601(dateTime);
-    timeController.text = ParserUtil.parseTimeISO8601(timeOfDay);
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      final _cost = widget.cost;
+      final _vehicle = widget.selectedVehicle;
+      if (_vehicle != null) {
+        setState(() {
+          odometerController.text = (_vehicle.odometer + 1).toString();
+        });
+      }
+      if (_cost != null) {
+        initializeCostData(_cost);
+      } else {
+        dateController.text = ParserUtil.parseDateISO8601(dateTime);
+        timeController.text = ParserUtil.parseTimeISO8601(timeOfDay);
+      }
+    });
 
     litersFocus = FocusNode();
     pricePerLiterFocus = FocusNode();
@@ -54,14 +84,49 @@ class _AddCostScreenState extends State<AddCostScreen> {
     super.initState();
   }
 
+  void initializeCostData(Cost cost) {
+    setState(() {
+      this.cost = cost;
+      costType = cost.category;
+      dateTime = DateTime.parse(cost.date);
+      timeOfDay = TimeOfDay.fromDateTime(DateTime.parse("${cost.date} ${cost.time}"));
+      costDescriptionController.text = cost.description;
+      dateController.text = ParserUtil.parseDateISO8601(dateTime);
+      timeController.text = ParserUtil.parseTimeISO8601(timeOfDay);
+      litersController.text = cost.litersFilled.toString();
+      pricePerLiterController.text = cost.pricePerLiter.toString();
+      totalCostController.text = cost.totalPrice.toString();
+
+      if (cost.partsChanged.isNotEmpty) {
+        initializeParts(cost.partsChanged, cost.partsPrice);
+      }
+    });
+  }
+
+  void initializeParts(List<String> partNames, List<double> partPrices) {
+    if (partNames.isEmpty) {
+      return;
+    }
+    for (var i = 0; i < partNames.length; i++) {
+      parts.add(
+        createPartItem(
+          partName: partNames[i],
+          partPrice: partPrices[i].toString(),
+        ),
+      );
+    }
+    calculateTotalPrice();
+  }
+
   @override
   Widget build(BuildContext context) {
+    settings = SettingsProvider.get(context).preferences;
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => saveCost(),
         label: const Text("Save cost"),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -100,6 +165,23 @@ class _AddCostScreenState extends State<AddCostScreen> {
                           text,
                           errorMessage: "Cost description can't be empty",
                         ),
+                      ),
+                      const SizedBox(
+                        height: 9,
+                      ),
+                      InputField(
+                        controller: odometerController,
+                        hint: "Odometer",
+                        keyboardType: TextInputType.numberWithOptions(signed: true),
+                        validator: (text) {
+                          if (text != null && text.isNotEmpty && int.parse(text) <= widget.selectedVehicle!.odometer) {
+                            return "Odometer value must be greater than previous value";
+                          } else if (text == null || text.isEmpty) {
+                            return "Odometer field can't be empty!";
+                          } else if (text.isNotEmpty && int.parse(text) > widget.selectedVehicle!.odometer) {
+                            return null;
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -145,28 +227,28 @@ class _AddCostScreenState extends State<AddCostScreen> {
                         Row(
                           children: [
                             Flexible(
-                              child: GestureDetector(
-                                onTap: () async => showDateDialog(),
-                                child: InputField(
-                                  controller: dateController,
-                                  enabled: false,
-                                  hint: "Date",
-                                  keyboardType: TextInputType.number,
-                                ),
+                              child: DateField(
+                                dateController: dateController,
+                                globalDateTime: dateTime,
+                                onDatePicked: (DateTime dateTime) {
+                                  setState(() {
+                                    this.dateTime = dateTime;
+                                  });
+                                },
                               ),
                             ),
                             const SizedBox(
                               width: 6,
                             ),
                             Flexible(
-                              child: GestureDetector(
-                                onTap: () async => showTimeDialog(),
-                                child: InputField(
-                                  controller: timeController,
-                                  enabled: false,
-                                  hint: "Time",
-                                  keyboardType: TextInputType.number,
-                                ),
+                              child: TimeField(
+                                timeController: timeController,
+                                globalTime: timeOfDay,
+                                onTimePicked: (time) {
+                                  setState(() {
+                                    timeOfDay = time;
+                                  });
+                                },
                               ),
                             ),
                           ],
@@ -175,13 +257,14 @@ class _AddCostScreenState extends State<AddCostScreen> {
                     ),
                   ),
                   Visibility(
-                    visible: costType != null && costType == "Service",
+                    visible: costType != null && (costType == "Service" || costType == "Maintenance"),
                     child: HeadingContainer(
                       headText: "Service",
                       children: [
                         InputField(
                           controller: totalServiceCostController,
                           hint: "Service cost",
+                          keyboardType: TextInputType.number,
                         ),
                         const SizedBox(
                           height: 9,
@@ -189,28 +272,28 @@ class _AddCostScreenState extends State<AddCostScreen> {
                         Row(
                           children: [
                             Flexible(
-                              child: GestureDetector(
-                                onTap: () async => showDateDialog(),
-                                child: InputField(
-                                  controller: dateController,
-                                  enabled: false,
-                                  hint: "Date",
-                                  keyboardType: TextInputType.number,
-                                ),
+                              child: DateField(
+                                dateController: dateController,
+                                globalDateTime: dateTime,
+                                onDatePicked: (DateTime dateTime) {
+                                  setState(() {
+                                    this.dateTime = dateTime;
+                                  });
+                                },
                               ),
                             ),
                             const SizedBox(
                               width: 6,
                             ),
                             Flexible(
-                              child: GestureDetector(
-                                onTap: () async => showTimeDialog(),
-                                child: InputField(
-                                  controller: timeController,
-                                  enabled: false,
-                                  hint: "Time",
-                                  keyboardType: TextInputType.number,
-                                ),
+                              child: TimeField(
+                                timeController: timeController,
+                                globalTime: timeOfDay,
+                                onTimePicked: (time) {
+                                  setState(() {
+                                    timeOfDay = time;
+                                  });
+                                },
                               ),
                             ),
                           ],
@@ -230,10 +313,123 @@ class _AddCostScreenState extends State<AddCostScreen> {
                         TextButton(
                           onPressed: () {
                             setState(() {
+                              FocusScope.of(context).unfocus();
                               parts.add(createPartItem());
                             });
                           },
                           child: Text("Add cost"),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Visibility(
+                    visible: costType != null && costType == "Parking",
+                    child: HeadingContainer(
+                      headText: "Parking info",
+                      children: [
+                        InputField(
+                          controller: totalCostController,
+                          hint: "Parking price",
+                          keyboardType: TextInputType.number,
+                          validator: (text) => ValidatorUtil.validateEmptyText(text, errorMessage: "Enter parking fee!"),
+                        ),
+                        const SizedBox(
+                          height: 9,
+                        ),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: DateField(
+                                dateController: dateController,
+                                globalDateTime: dateTime,
+                                onDatePicked: (date) {
+                                  setState(() {
+                                    dateTime = date;
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 6,
+                            ),
+                            Flexible(
+                              child: TimeField(
+                                timeController: timeController,
+                                globalTime: timeOfDay,
+                                onTimePicked: (time) {
+                                  setState(() {
+                                    timeOfDay = time;
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 9,
+                        ),
+                        /*Visibility(
+                          visible: (dateTime.isAfter(DateTime.now())),
+                          child: CheckboxListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text("Notify before expiration!"),
+                            value: notifyParking,
+                            onChanged: (checked) {
+                              setState(() {
+                                notifyParking = !notifyParking;
+                              });
+                            },
+                            controlAffinity: ListTileControlAffinity.leading,
+                          ),
+                        ),*/
+                      ],
+                    ),
+                  ),
+                  Visibility(
+                    visible: costType != null && costType == "Registration",
+                    child: HeadingContainer(
+                      headText: "Parking info",
+                      children: [
+                        InputField(
+                          controller: totalCostController,
+                          hint: "Total registration cost",
+                          keyboardType: TextInputType.number,
+                          validator: (text) => ValidatorUtil.validateEmptyText(text, errorMessage: "You need to enter registration cost!"),
+                        ),
+                        const SizedBox(
+                          height: 9,
+                        ),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: DateField(
+                                dateController: dateController,
+                                globalDateTime: dateTime,
+                                onDatePicked: (date) {
+                                  setState(() {
+                                    dateTime = date;
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 6,
+                            ),
+                            Flexible(
+                              child: TimeField(
+                                timeController: timeController,
+                                globalTime: timeOfDay,
+                                onTimePicked: (time) {
+                                  setState(() {
+                                    timeOfDay = time;
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 9,
                         ),
                       ],
                     ),
@@ -247,9 +443,9 @@ class _AddCostScreenState extends State<AddCostScreen> {
     );
   }
 
-  Widget createPartItem() {
-    final partNameController = TextEditingController();
-    final partPriceController = TextEditingController();
+  Widget createPartItem({String? partName, String? partPrice}) {
+    final partNameController = TextEditingController(text: partName);
+    final partPriceController = TextEditingController(text: partPrice);
 
     partsNameEditingControllers.add(partNameController);
     partsPriceEditingControllers.add(partPriceController);
@@ -275,7 +471,10 @@ class _AddCostScreenState extends State<AddCostScreen> {
             IconButton(
               onPressed: () {
                 setState(() {
+                  partsNameEditingControllers.remove(partNameController);
+                  partsPriceEditingControllers.remove(partPriceController);
                   parts.removeWhere((element) => element.key == key);
+                  calculateTotalPrice();
                 });
               },
               icon: const Icon(Icons.close),
@@ -292,7 +491,9 @@ class _AddCostScreenState extends State<AddCostScreen> {
           child: InputField(
             controller: partPriceController,
             hint: "Part price",
-            trailing: const Text("KM"),
+            trailing: Text(settings.getCurrency()),
+            validator: (text) => ValidatorUtil.validateEmptyText(text, errorMessage: "Price field can't be empty!"),
+            maxLength: 6,
             keyboardType: TextInputType.number,
             onTextChanged: (price) => calculateTotalPrice(),
           ),
@@ -335,43 +536,6 @@ class _AddCostScreenState extends State<AddCostScreen> {
     }
   }
 
-  showDateDialog() async {
-    final currentDate = DateTime.now();
-    final _date = await showDatePicker(
-      context: context,
-      initialDate: dateTime,
-      firstDate: DateTime(currentDate.year),
-      lastDate: DateTime.utc(
-        currentDate.year + 1,
-      ),
-    );
-
-    if (_date == null) {
-      return;
-    }
-
-    setState(() {
-      dateTime = _date;
-      dateController.text = ParserUtil.parseDateISO8601(_date);
-    });
-  }
-
-  showTimeDialog() async {
-    final _time = await showTimePicker(
-      context: context,
-      initialTime: timeOfDay,
-    );
-
-    if (_time == null) {
-      return;
-    }
-
-    setState(() {
-      timeOfDay = _time;
-      timeController.text = ParserUtil.parseTimeISO8601(_time);
-    });
-  }
-
   @override
   void dispose() {
     totalCostFocus.dispose();
@@ -387,18 +551,20 @@ class _AddCostScreenState extends State<AddCostScreen> {
 
     // Everything is valid inside form
     if (formKey.currentState!.validate()) {
-      var cost = Cost();
+      //var cost = Cost();
       if (costType == "Fuel") {
         cost = Cost.fuel(
+          cost.id,
           "",
           costDescriptionController.text.isEmpty ? "Fuel refill" : costDescriptionController.text,
           double.parse(totalCostController.text),
+          int.parse(odometerController.text),
           dateController.text,
           timeController.text,
           double.parse(litersController.text),
           double.parse(pricePerLiterController.text),
         );
-      } else if (costType == "Service") {
+      } else if (costType == "Service" || costType == "Maintenance") {
         final partsNameList = <String>[];
         final partsPriceList = <double>[];
 
@@ -407,14 +573,37 @@ class _AddCostScreenState extends State<AddCostScreen> {
           partsPriceList.add(double.parse(partsPriceEditingControllers[i].text));
         }
 
-        cost = Cost.createService(
+        cost = Cost.serviceOrMaintenance(
+          cost.id,
           "",
           costDescriptionController.text.isEmpty ? "Service" : costDescriptionController.text,
           double.parse(totalServiceCostController.text),
+          int.parse(odometerController.text),
           dateController.text,
           timeController.text,
           partsNameList,
           partsPriceList,
+          costType!,
+        );
+      } else if (costType == "Parking") {
+        cost = Cost.parking(
+          id: cost.id,
+          title: "",
+          description: costDescriptionController.text,
+          totalPrice: double.parse(totalCostController.text),
+          odometer: int.parse(odometerController.text),
+          date: dateController.text,
+          time: timeController.text,
+        );
+      } else if (costType == "Registration") {
+        cost = Cost.registration(
+          id: cost.id,
+          title: '',
+          date: dateController.text,
+          time: timeController.text,
+          description: costDescriptionController.text,
+          totalPrice: double.parse(totalCostController.text),
+          odometer: int.parse(odometerController.text),
         );
       }
 
@@ -427,11 +616,102 @@ class _AddCostScreenState extends State<AddCostScreen> {
 
   void calculateTotalPrice() {
     double totalPartsPrice = 0.0;
-    partsPriceEditingControllers.forEach((element) {
+    for (var element in partsPriceEditingControllers) {
+      if (element.text.isEmpty) {
+        continue;
+      }
       totalPartsPrice += double.parse(element.text);
-    });
+    }
     setState(() {
       totalServiceCostController.text = totalPartsPrice.toStringAsFixed(2);
     });
+  }
+}
+
+class TimeField extends StatelessWidget {
+  const TimeField({
+    Key? key,
+    required this.timeController,
+    required this.globalTime,
+    required this.onTimePicked,
+  }) : super(key: key);
+
+  final TextEditingController timeController;
+  final TimeOfDay globalTime;
+  final Function(TimeOfDay time) onTimePicked;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async => showTimeDialog(context),
+      child: InputField(
+        controller: timeController,
+        enabled: false,
+        hint: "Time",
+        keyboardType: TextInputType.number,
+      ),
+    );
+  }
+
+  showTimeDialog(BuildContext context) async {
+    final _time = await showTimePicker(
+      context: context,
+      initialTime: globalTime,
+    );
+
+    if (_time == null) {
+      return;
+    }
+    timeController.text = ParserUtil.parseTimeISO8601(_time);
+    onTimePicked(_time);
+  }
+}
+
+class DateField extends StatelessWidget {
+  const DateField({
+    Key? key,
+    required this.dateController,
+    required this.globalDateTime,
+    required this.onDatePicked,
+  }) : super(key: key);
+
+  final TextEditingController dateController;
+  final DateTime globalDateTime;
+  final Function(DateTime dateTime) onDatePicked;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async => showDateDialog(context),
+      child: InputField(
+        controller: dateController,
+        enabled: false,
+        hint: "Date",
+        keyboardType: TextInputType.number,
+      ),
+    );
+  }
+
+  showDateDialog(BuildContext context) async {
+    final currentDate = DateTime.now();
+    final _date = await showDatePicker(
+      context: context,
+      initialDate: globalDateTime,
+      firstDate: DateTime(currentDate.year),
+      lastDate: DateTime.utc(
+        currentDate.year + 1,
+      ),
+    );
+
+    if (_date == null) {
+      return;
+    }
+    dateController.text = ParserUtil.parseDateISO8601(_date);
+
+    onDatePicked(_date);
+    /*setState(() {
+      globalDateTime = _date;
+
+    });*/
   }
 }

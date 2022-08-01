@@ -11,6 +11,7 @@ class MyVehicleBloc extends Bloc<MyVehicleBlocEvent, MyVehicleBlocState> {
   MyVehicleBloc(this._repository) : super(const InitialState()) {
     on<LoadVehicles>(_loadVehicles);
     on<SelectVehicle>(_selectVehicle);
+    on<DeleteCost>(_deleteCost);
   }
 
   FutureOr<void> _loadVehicles(LoadVehicles event, Emitter<MyVehicleBlocState> emit) {
@@ -18,6 +19,9 @@ class MyVehicleBloc extends Bloc<MyVehicleBlocEvent, MyVehicleBlocState> {
       LoadedVehicleState(
         selectedVehicle: _repository.getSelectedVehicle(),
         allVehicles: _repository.getAllVehicles(),
+        thisMonthCosts: _repository.getThisMonthCosts(),
+        lastFillups: _repository.getLastTwoFillUps(),
+        averageConsumption: _repository.getFuelConsumption(),
       ),
     );
   }
@@ -29,6 +33,25 @@ class MyVehicleBloc extends Bloc<MyVehicleBlocEvent, MyVehicleBlocState> {
       LoadedVehicleState(
         selectedVehicle: _repository.getSelectedVehicle(),
         allVehicles: _repository.getAllVehicles(),
+        thisMonthCosts: _repository.getThisMonthCosts(),
+        lastFillups: _repository.getLastTwoFillUps(),
+        averageConsumption: _repository.getFuelConsumption(),
+      ),
+    );
+  }
+
+  FutureOr<void> _deleteCost(DeleteCost event, Emitter<MyVehicleBlocState> emit) {
+    final vehicle = event.selectedVehicle;
+
+    final indexOfItem = vehicle.costs.indexWhere((element) => element.id == event.cost.id);
+    vehicle.costs.removeAt(indexOfItem);
+
+    _repository.insertVehicle(vehicle);
+
+    add(
+      LoadVehicles(
+        selectedVehicle: vehicle,
+        vehicles: _repository.getAllVehicles(),
       ),
     );
   }

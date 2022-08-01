@@ -2,10 +2,14 @@ import 'package:carex_flutter/services/bloc/blocs/costs_bloc.dart';
 import 'package:carex_flutter/services/bloc/events/costs_bloc_events.dart';
 import 'package:carex_flutter/services/bloc/states/costs_bloc_states.dart';
 import 'package:carex_flutter/services/models/cost.dart';
+import 'package:carex_flutter/services/models/cost_arguments.dart';
 import 'package:carex_flutter/services/models/cost_info.dart';
 import 'package:carex_flutter/services/models/vehicle.dart';
 import 'package:carex_flutter/ui/screens/add_cost_screen.dart';
 import 'package:carex_flutter/ui/widgets/drawer.dart';
+import 'package:carex_flutter/ui/widgets/list_date_header.dart';
+import 'package:carex_flutter/ui/widgets/settings_provider.dart';
+import 'package:carex_flutter/util/constants/color_constants.dart';
 import 'package:carex_flutter/util/constants/ui_constants.dart';
 import 'package:carex_flutter/util/util_functions.dart';
 import 'package:flutter/cupertino.dart';
@@ -34,60 +38,81 @@ class _CostsScreenState extends State<CostsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: const CarexDrawer(
-        currentRoute: CostsScreen.id,
-      ),
-      appBar: AppBar(
-        title: Text("Costs"),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          final providerState = BlocProvider.of<CostsBloc>(context).state;
-          // Error state
-          if (providerState is! LoadedCostsState && providerState is! NoCostsState) {
-            SnackBarUtil.showInfoSnackBar(context, "Can't add cost right now!");
-            return;
-          }
+    return WillPopScope(
+      onWillPop: () {
+        if (infoExpanded) {
+          setState(() {
+            infoExpanded = false;
+          });
+          return Future.value(false);
+        } else {
+          return Future.value(true);
+        }
+      },
+      child: Scaffold(
+        drawer: const CarexDrawer(
+          currentRoute: CostsScreen.id,
+        ),
+        appBar: AppBar(
+          title: const Text("Costs"),
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () {
+            final providerState = BlocProvider.of<CostsBloc>(context).state;
+            // Error state
+            if (providerState is LoadedCostsState || providerState is NoCostsState) {
+              Vehicle? selectedVehicle;
 
-          Navigator.pushNamed(context, AddCostScreen.id);
-        },
-        label: Text("New cost"),
-        icon: Icon(Icons.add),
-      ),
-      body: SafeArea(
-        child: BlocBuilder<CostsBloc, CostsBlocStates>(
-          builder: (context, state) {
-            if (state is LoadedCostsState) {
-              return CostsScreenContent(
-                selectedVehicle: state.selectedVehicle!,
-                costs: state.costs,
-                costInfo: state.costsInfo,
-                isExpanded: infoExpanded,
-                expandedListener: (panelIndex, isExpanded) {
-                  print("Expanded clicked $isExpanded");
-                  setState(() {
-                    infoExpanded = !infoExpanded;
-                  });
-                },
-              );
-            } else if (state is CostsInitialState) {
-              return InitialScreenContent();
-            } else if (state is NoCostsState) {
-              return NoCostsScreenContent();
-            } else if (state is CostsErrorState) {
-              final message = state.errorMessage;
-              return ErrorScreenContent(
-                errorMessage: message,
-              );
-            } else if (state is CostsNoSelectedVehicleState) {
-              return NoSelectedVehicleScreen();
+              try {
+                selectedVehicle = (providerState as LoadedCostsState).selectedVehicle;
+              } on Exception {
+                selectedVehicle = (providerState as NoCostsState).selectedVehicle;
+              }
+
+              final args = AddCostArguments(vehicle: selectedVehicle);
+              Navigator.pushNamed(context, AddCostScreen.id, arguments: args);
             } else {
-              return Center(
-                child: Text("Error loading screen"),
-              );
+              SnackBarUtil.showInfoSnackBar(context, "Can't add cost right now!");
+              return;
             }
           },
+          label: Text("New cost"),
+          icon: Icon(Icons.add),
+        ),
+        body: SafeArea(
+          child: BlocBuilder<CostsBloc, CostsBlocStates>(
+            builder: (context, state) {
+              if (state is LoadedCostsState) {
+                return CostsScreenContent(
+                  selectedVehicle: state.selectedVehicle!,
+                  costs: state.costs,
+                  costInfo: state.costsInfo,
+                  yearCosts: state.yearCosts,
+                  isExpanded: infoExpanded,
+                  expandedListener: (panelIndex, isExpanded) {
+                    setState(() {
+                      infoExpanded = !infoExpanded;
+                    });
+                  },
+                );
+              } else if (state is CostsInitialState) {
+                return InitialScreenContent();
+              } else if (state is NoCostsState) {
+                return NoCostsScreenContent();
+              } else if (state is CostsErrorState) {
+                final message = state.errorMessage;
+                return ErrorScreenContent(
+                  errorMessage: message,
+                );
+              } else if (state is CostsNoSelectedVehicleState) {
+                return NoSelectedVehicleScreen();
+              } else {
+                return Center(
+                  child: Text("Error loading screen"),
+                );
+              }
+            },
+          ),
         ),
       ),
     );
@@ -111,240 +136,214 @@ class CostsScreenContent extends StatelessWidget {
     required this.selectedVehicle,
     required this.costs,
     required this.costInfo,
+    required this.yearCosts,
     required this.isExpanded,
     this.expandedListener,
   }) : super(key: key);
 
   final Vehicle selectedVehicle;
   final List<Cost> costs;
-  final Map<String, double> costInfo;
+  final List<CostInfo> costInfo;
+  final List<CostInfo> yearCosts;
   final void Function(int, bool)? expandedListener;
   final bool isExpanded;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Column(
-      children: [
-        /*Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 9,
-          ),
-          child: Container(
-            clipBehavior: Clip.none,
-            decoration: const BoxDecoration(
-              //color: theme.cardColor,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                stops: [
-                  0,
-                  0.1,
-                  0.31,
-                  0.75,
-                  1.0,
-                ],
-                colors: [
-                  Color(0xFFd5d4d0),
-                  Color(0xFFd5d4d0),
-                  Color(0xFFeeeeec),
-                  Color(0xFFefeeec),
-                  Color(0xFFe9e9e7),
-                ],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x1B020202),
-                  blurRadius: 3,
-                  offset: Offset(0.5, 1.5),
-                ),
-              ],
-              borderRadius: InterfaceUtil.allBorderRadius16,
-            ),
+    final settings = SettingsProvider.get(context).preferences;
+    print(yearCosts);
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
             child: Padding(
               padding: const EdgeInsets.symmetric(
+                horizontal: 12,
                 vertical: 9,
-                horizontal: 16,
               ),
-              child: Column(
-                children: [
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(selectedVehicle.model),
-                    leading: WidgetUtil.getVehiclePicture(selectedVehicle.imagePath),
-                  ),
-                  const SizedBox(
-                    height: 12,
-                  ),
-                  LinearProgressBar(
-                    value: costInfo["Fuel"]! / costInfo["Total"]!,
-                    label: 'Spent on fuel',
-                    endValue: costInfo["Total"]!.toString(),
-                  )
-                ],
-              ),
-            ),
-          ),
-        ),*/
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 9,
-          ),
-          child: ClipRRect(
-            borderRadius: InterfaceUtil.allBorderRadius16,
-            child: ExpansionPanelList(
-              expansionCallback: expandedListener,
-              children: [
-                ExpansionPanel(
-                  isExpanded: isExpanded,
-                  headerBuilder: (context, isExpanded) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 9,
-                        horizontal: 16,
-                      ),
-                      child: ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(selectedVehicle.model),
-                        leading: WidgetUtil.getVehiclePicture(selectedVehicle.imagePath),
-                      ),
-                    );
-                  },
-                  body: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 9,
-                      horizontal: 16,
-                    ),
-                    child: Column(
-                      children: [
-                        SfCircularChart(
-                          series: <CircularSeries>[
-                            PieSeries<CostInfo, String>(
-                              dataSource: costInfo.entries.map((e) => CostInfo(e.key, e.value)).toList(),
+              child: ClipRRect(
+                borderRadius: InterfaceUtil.allBorderRadius16,
+                child: ExpansionPanelList(
+                  expansionCallback: expandedListener,
+                  children: [
+                    ExpansionPanel(
+                      isExpanded: isExpanded,
+                      headerBuilder: (context, isExpanded) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 9,
+                            horizontal: 16,
+                          ),
+                          child: ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(selectedVehicle.model),
+                            leading: WidgetUtil.getVehiclePicture(selectedVehicle.imagePath, 90),
+                          ),
+                        );
+                      },
+                      body: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 9,
+                          horizontal: 16,
+                        ),
+                        child: Column(
+                          children: [
+                            SfCircularChart(
+                              title: ChartTitle(text: "Costs in ${DateFormat("MMMM").format(DateTime.now())}"),
+                              legend: Legend(
+                                isVisible: true,
+                                alignment: ChartAlignment.center,
+                                position: LegendPosition.top,
+                              ),
+                              series: <CircularSeries>[
+                                PieSeries<CostInfo, String>(
+                                  animationDuration: 700,
+                                  dataSource: costInfo.where((element) => element.costName != "Total").toList(),
+                                  xValueMapper: (_costInfo, _) => _costInfo.costName,
+                                  yValueMapper: (_costInfo, _) => _costInfo.costPrice,
+                                  pointColorMapper: (_cost, _) => ColorUtil.getColorBasedOnCostType(_cost.costName),
+                                  explode: true,
+                                  dataLabelSettings: const DataLabelSettings(
+                                    isVisible: true,
+                                    showZeroValue: false,
+                                    labelPosition: ChartDataLabelPosition.outside,
+                                    labelIntersectAction: LabelIntersectAction.shift,
+                                    useSeriesColor: true,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Visibility(
+                              visible: yearCosts.isNotEmpty,
+                              child: SfCartesianChart(
+                                primaryXAxis: CategoryAxis(),
+                                primaryYAxis: NumericAxis(
+                                  isVisible: true,
+                                  labelFormat: "{value} ${settings.getCurrency()}",
+                                  anchorRangeToVisiblePoints: true,
+                                ),
+                                series: <ChartSeries>[
+                                  ColumnSeries<CostInfo, String>(
+                                    borderRadius: InterfaceUtil.topBorderRadius9,
+                                    color: mainColor,
+                                    dataSource: yearCosts,
+                                    xValueMapper: (data, _) => data.costName,
+                                    yValueMapper: (data, _) => data.costPrice,
+                                    dataLabelMapper: (data, _) => data.costPrice.toString(),
+                                    dataLabelSettings: DataLabelSettings(
+                                      isVisible: true,
+                                      useSeriesColor: true,
+                                      textStyle: theme.textTheme.displaySmall!,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
-                        LinearProgressBar(
-                          value: costInfo["Fuel"]! / costInfo["Total"]!,
-                          label: 'Spent on fuel',
-                          endValue: costInfo["Fuel"]!.toString(),
-                        ),
-                        const SizedBox(
-                          height: 6,
-                        ),
-                        LinearProgressBar(
-                          value: costInfo["Service"]! / costInfo["Total"]!,
-                          label: 'Spent on service',
-                          endValue: costInfo["Service"]!.toString(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        Expanded(
-          child: GroupedListView<Cost, String>(
-            elements: costs.toList(),
-            groupBy: (cost) => "${DateTime.parse(cost.date).month}",
-            order: GroupedListOrder.DESC,
-            groupHeaderBuilder: (cost) {
-              return Padding(
-                padding: const EdgeInsets.only(
-                  top: 12,
-                  bottom: 9,
-                  left: 16,
-                  right: 16,
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_month,
-                    ),
-                    const SizedBox(
-                      width: 9,
-                    ),
-                    Text(
-                      DateFormat("MMMM yyyy").format(
-                        DateTime.parse(cost.date),
                       ),
                     ),
                   ],
                 ),
-              );
-            },
-            padding: EdgeInsets.symmetric(
-              vertical: 9,
+              ),
             ),
-            //physics: const BouncingScrollPhysics(),
-            itemComparator: (cost1, cost2) {
-              return DateTime.parse("${cost1.date} ${cost1.time}").compareTo(DateTime.parse("${cost2.date} ${cost2.time}"));
-            },
-            indexedItemBuilder: (context, cost, index) {
-              return Container(
-                margin: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 3,
-                ),
-                child: Dismissible(
-                  confirmDismiss: (direction) {
-                    if (direction == DismissDirection.endToStart) {
-                      return Future.value(false);
-                    }
-                    return Future.value(true);
-                  },
-                  key: UniqueKey(),
-                  background: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: InterfaceUtil.allBorderRadius16,
-                      color: Colors.red,
-                    ),
-                    child: Icon(
-                      Icons.delete,
-                      color: Colors.white,
-                    ),
-                  ),
-                  onDismissed: (direction) {
-                    if (direction == DismissDirection.startToEnd) {
-                      _deleteItem(context, cost);
-                      SnackBarUtil.showInfoSnackBar(context, "Item deleted!");
-                    }
-                  },
-                  child: ListTile(
-                    leading: WidgetUtil.getIconBasedOnCostType(cost.category),
-                    title: Text(cost.description),
-                    subtitle: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Total: ${cost.totalPrice} KM",
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          DateFormat("dd MMMM").format(
-                            DateTime.parse(cost.date),
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.displaySmall?.copyWith(),
-                        ),
-                      ],
-                    ),
-                    tileColor: Colors.white,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12,
-                    ),
-                    shape: InterfaceUtil.allCornerRadiusRoundedRectangle16,
-                  ),
-                ),
-              );
-            },
           ),
-        ),
-      ],
+          Flexible(
+            child: GroupedListView<Cost, String>(
+              elements: costs.toList(),
+              groupBy: (cost) => "${DateTime.parse(cost.date).month}",
+              order: GroupedListOrder.DESC,
+              shrinkWrap: true,
+              groupHeaderBuilder: (cost) {
+                return Padding(
+                  padding: const EdgeInsets.only(
+                    top: 12,
+                    bottom: 9,
+                    left: 16,
+                    right: 16,
+                  ),
+                  child: DateHeaderWidget(
+                    cost: cost,
+                  ),
+                );
+              },
+              padding: EdgeInsets.symmetric(
+                vertical: 9,
+              ),
+              //physics: const BouncingScrollPhysics(),
+              itemComparator: (cost1, cost2) {
+                return DateTime.parse("${cost1.date} ${cost1.time}").compareTo(DateTime.parse("${cost2.date} ${cost2.time}"));
+              },
+              indexedItemBuilder: (context, cost, index) {
+                final settings = SettingsProvider.get(context).preferences;
+                return Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 3,
+                  ),
+                  child: Dismissible(
+                    confirmDismiss: (direction) {
+                      if (direction == DismissDirection.endToStart) {
+                        return Future.value(false);
+                      }
+                      return Future.value(true);
+                    },
+                    key: UniqueKey(),
+                    background: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: InterfaceUtil.allBorderRadius16,
+                        color: Colors.red,
+                      ),
+                      child: Icon(
+                        Icons.delete,
+                        color: Colors.white,
+                      ),
+                    ),
+                    onDismissed: (direction) {
+                      if (direction == DismissDirection.startToEnd) {
+                        _deleteItem(context, cost);
+                        SnackBarUtil.showInfoSnackBar(context, "Item deleted!");
+                      }
+                    },
+                    child: ListTile(
+                      leading: WidgetUtil.getIconBasedOnCostType(cost.category),
+                      title: Text(cost.description),
+                      subtitle: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Total: ${cost.totalPrice} ${settings.getCurrency()}",
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            DateFormat("dd MMMM").format(
+                              DateTime.parse(cost.date),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.displaySmall?.copyWith(),
+                          ),
+                        ],
+                      ),
+                      onTap: () => _editCostNavigate(
+                        context,
+                        selectedVehicle,
+                        cost,
+                      ),
+                      tileColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                      ),
+                      shape: InterfaceUtil.allCornerRadiusRoundedRectangle16,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -353,50 +352,22 @@ class CostsScreenContent extends StatelessWidget {
       DeleteCost(cost: cost),
     );
   }
-}
 
-class LinearProgressBar extends StatelessWidget {
-  const LinearProgressBar({
-    Key? key,
-    required this.label,
-    required this.endValue,
-    required this.value,
-  }) : super(key: key);
+  _editCostNavigate(BuildContext context, Vehicle vehicle, Cost cost) {
+    final args = AddCostArguments(vehicle: vehicle, cost: cost);
 
-  final String label;
-  final String endValue;
-  final double value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: theme.textTheme.displaySmall?.copyWith(
-                fontSize: 14,
-              ),
-            ),
-            Text(
-              "$endValue KM",
-              style: theme.textTheme.displaySmall?.copyWith(
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-        LinearProgressIndicator(
-          value: value,
-          minHeight: 6,
-        ),
-      ],
-    );
+    Navigator.pushNamed(context, AddCostScreen.id, arguments: args);
   }
 }
+
+/*
+// ONTAP
+() => _editCostNavigate(
+            context,
+            selectedVehicle,
+            cost,
+          ),
+ */
 
 class InitialScreenContent extends StatelessWidget {
   const InitialScreenContent({Key? key}) : super(key: key);

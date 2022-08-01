@@ -2,6 +2,7 @@ import 'package:carex_flutter/services/bloc/blocs/costs_bloc.dart';
 import 'package:carex_flutter/services/bloc/blocs/myvehicle_bloc.dart';
 import 'package:carex_flutter/services/bloc/events/costs_bloc_events.dart';
 import 'package:carex_flutter/services/bloc/events/myvehicle_bloc_events.dart';
+import 'package:carex_flutter/services/models/cost_arguments.dart';
 import 'package:carex_flutter/services/models/vehicle.dart';
 import 'package:carex_flutter/services/repositories/repository.dart';
 import 'package:carex_flutter/ui/screens/add_cost_screen.dart';
@@ -71,12 +72,16 @@ Route<dynamic>? generateRoutes(RouteSettings settings) {
       }
     case AddCostScreen.id:
       {
+        final args = (settings.arguments) as AddCostArguments?;
         return MaterialPageRoute(
           builder: (context) => BlocProvider<CostsBloc>(
             create: (context) => CostsBloc(
               RepositoryProvider.of<Repository>(context),
             ),
-            child: const AddCostScreen(),
+            child: AddCostScreen(
+              selectedVehicle: args?.vehicle,
+              cost: args?.cost,
+            ),
           ),
         );
       }

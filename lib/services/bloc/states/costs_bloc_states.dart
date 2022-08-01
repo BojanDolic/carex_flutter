@@ -1,4 +1,5 @@
 import 'package:carex_flutter/services/models/cost.dart';
+import 'package:carex_flutter/services/models/cost_info.dart';
 import 'package:carex_flutter/services/models/vehicle.dart';
 import 'package:equatable/equatable.dart';
 
@@ -26,10 +27,11 @@ class CostsErrorState extends CostsBlocStates {
 }
 
 class NoCostsState extends CostsBlocStates {
-  const NoCostsState();
+  final Vehicle? selectedVehicle;
+  const NoCostsState({required this.selectedVehicle});
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [selectedVehicle];
 }
 
 class CostsNoSelectedVehicleState extends CostsBlocStates {
@@ -44,14 +46,16 @@ class CostsNoSelectedVehicleState extends CostsBlocStates {
 class LoadedCostsState extends CostsBlocStates {
   final Vehicle? selectedVehicle;
   final List<Cost> costs;
-  final Map<String, double> costsInfo;
+  final List<CostInfo> costsInfo;
+  final List<CostInfo> yearCosts;
 
   const LoadedCostsState({
     required this.selectedVehicle,
     required this.costs,
     required this.costsInfo,
+    required this.yearCosts,
   });
 
   @override
-  List<Object?> get props => [selectedVehicle, costs, costsInfo];
+  List<Object?> get props => [selectedVehicle, costs, costsInfo, yearCosts];
 }

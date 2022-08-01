@@ -4,6 +4,7 @@ import 'package:carex_flutter/util/constants/color_constants.dart';
 import 'package:carex_flutter/util/constants/ui_constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 
 class WidgetUtil {
   static Widget getIconBasedOnCostType(String costType, [double iconSize = 32]) {
@@ -11,7 +12,7 @@ class WidgetUtil {
       case "Fuel":
         {
           return Icon(
-            Icons.local_gas_station,
+            Iconsax.gas_station,
             color: Colors.red,
             size: iconSize,
           );
@@ -19,7 +20,7 @@ class WidgetUtil {
       case "Service":
         {
           return Icon(
-            Icons.build_rounded,
+            Icons.build_outlined,
             color: Colors.blue,
             size: iconSize,
           );
@@ -27,8 +28,24 @@ class WidgetUtil {
       case "Maintenance":
         {
           return Icon(
-            Icons.build,
+            Iconsax.setting_2,
             color: mainColor,
+            size: iconSize,
+          );
+        }
+      case "Parking":
+        {
+          return Icon(
+            Icons.local_parking_outlined,
+            color: Colors.green,
+            size: iconSize,
+          );
+        }
+      case "Registration":
+        {
+          return Icon(
+            Iconsax.note_1,
+            color: Colors.deepPurple,
             size: iconSize,
           );
         }
@@ -45,13 +62,15 @@ class WidgetUtil {
   "Parking",
   "Registration",*/
 
-  static Widget getVehiclePicture(String? imagePath, [double? borderRadius]) {
+  static Widget getVehiclePicture(String? imagePath, double size, [double? borderRadius]) {
     if (imagePath != null) {
       return ClipRRect(
         borderRadius: borderRadius != null ? BorderRadius.circular(borderRadius) : InterfaceUtil.allBorderRadius9,
         child: Image.file(
           File(imagePath),
           fit: BoxFit.cover,
+          width: size,
+          height: size * .8,
         ),
       );
     } else {
@@ -62,6 +81,37 @@ class WidgetUtil {
           fit: BoxFit.cover,
         ),
       );
+    }
+  }
+}
+
+class ColorUtil {
+  static Color getColorBasedOnCostType(String costType) {
+    switch (costType) {
+      case "Fuel":
+        {
+          return Colors.red;
+        }
+      case "Service":
+        {
+          return Colors.blue;
+        }
+      case "Maintenance":
+        {
+          return mainColor;
+        }
+      case "Registration":
+        {
+          return Colors.deepPurple;
+        }
+      case "Parking":
+        {
+          return Colors.green;
+        }
+      default:
+        {
+          return mainColor;
+        }
     }
   }
 }

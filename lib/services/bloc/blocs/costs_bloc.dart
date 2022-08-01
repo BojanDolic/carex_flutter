@@ -22,7 +22,7 @@ class CostsBloc extends Bloc<CostsBlocEvent, states.CostsBlocStates> {
       emit(const states.CostsNoSelectedVehicleState());
       return Future.value();
     } else {
-      final costs = _repository.getAllCosts(selectedVehicle);
+      final costs = _repository.getAllCosts();
 
       if (costs.isEmpty) {
         add(const NoCostEvent());
@@ -32,7 +32,8 @@ class CostsBloc extends Bloc<CostsBlocEvent, states.CostsBlocStates> {
         states.LoadedCostsState(
           selectedVehicle: selectedVehicle,
           costs: costs,
-          costsInfo: _repository.getCosts(selectedVehicle),
+          costsInfo: _repository.getCostsStatisticsForThisMonth(),
+          yearCosts: _repository.getCostsByMonth(),
         ),
       );
     }
@@ -45,9 +46,12 @@ class CostsBloc extends Bloc<CostsBlocEvent, states.CostsBlocStates> {
     if (_selectedVehicle == null) {
       emit(const states.CostsNoSelectedVehicleState());
     } else {
+      // Updating odometer value and inserting cost
+      _selectedVehicle.odometer = cost.odometer;
       _selectedVehicle.costs.add(cost);
+
       _repository.insertVehicle(_selectedVehicle);
-      final costs = _repository.getAllCosts(_selectedVehicle);
+      final costs = _repository.getAllCosts();
 
       if (costs.isEmpty) {
         add(const NoCostEvent());
@@ -55,8 +59,9 @@ class CostsBloc extends Bloc<CostsBlocEvent, states.CostsBlocStates> {
         emit(
           states.LoadedCostsState(
             selectedVehicle: _selectedVehicle,
-            costs: _repository.getAllCosts(_selectedVehicle),
-            costsInfo: _repository.getCosts(_selectedVehicle),
+            costs: _repository.getAllCosts(),
+            costsInfo: _repository.getCostsStatisticsForThisMonth(),
+            yearCosts: _repository.getCostsByMonth(),
           ),
         );
       }
@@ -64,7 +69,17 @@ class CostsBloc extends Bloc<CostsBlocEvent, states.CostsBlocStates> {
   }
 
   FutureOr<void> _noCostsEvent(NoCostEvent event, Emitter<states.CostsBlocStates> emit) {
-    emit(const states.NoCostsState());
+    final selectedVehicle = _repository.getSelectedVehicle();
+
+    if (selectedVehicle == null) {
+      emit(
+        const states.CostsNoSelectedVehicleState(),
+      );
+    } else {
+      emit(
+        states.NoCostsState(selectedVehicle: selectedVehicle),
+      );
+    }
   }
 
   FutureOr<void> _deleteCost(DeleteCost event, Emitter<states.CostsBlocStates> emit) {

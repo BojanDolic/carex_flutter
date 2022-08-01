@@ -1,17 +1,18 @@
 import 'package:carex_flutter/objectbox.g.dart';
 import 'package:carex_flutter/services/models/cost.dart';
+import 'package:carex_flutter/services/models/cost_info.dart';
 import 'package:carex_flutter/services/models/vehicle.dart';
 import 'package:carex_flutter/services/store/objectbox_store.dart';
 
 class Repository {
-  final ObjectBox objectBox;
+  final ObjectBox database;
 
   late Box<Vehicle> _vehiclesStore;
   late Box<Cost> _costsStore;
 
-  Repository(this.objectBox) {
-    _vehiclesStore = objectBox.store.box<Vehicle>();
-    _costsStore = objectBox.store.box<Cost>();
+  Repository(this.database) {
+    _vehiclesStore = database.store.box<Vehicle>();
+    _costsStore = database.store.box<Cost>();
   }
 
   List<Vehicle> getAllVehicles() {
@@ -47,21 +48,14 @@ class Repository {
     _vehiclesStore.putMany(modifiedVehicles.toList());
   }
 
-  Vehicle? getSelectedVehicle() {
-    final _queryBuilder = _vehiclesStore.query(Vehicle_.selected.equals(true));
+  List<Cost> getAllCosts() {
+    final vehicle = getSelectedVehicle();
+    var costs = <Cost>[];
 
-    final query = _queryBuilder.build();
-    try {
-      final vehicle = query.find().first;
-      query.close();
-      return vehicle;
-    } catch (badState) {
-      query.close();
-      return null;
+    if (vehicle == null) {
+      return costs;
     }
-  }
 
-  List<Cost> getAllCosts(Vehicle vehicle) {
     final queryBuilder = _costsStore.query(Cost_.vehicle.equals(vehicle.id))
       ..order(
         Cost_.date,
@@ -70,57 +64,32 @@ class Repository {
 
     final query = queryBuilder.build();
 
-    final costs = query.find();
+    costs = query.find();
     query.close();
     return costs;
   }
 
-  Map<String, double> getCosts(Vehicle vehicle) {
-    final queryBuilder = _costsStore.query(Cost_.vehicle.equals(vehicle.id))
-      ..order(
-        Cost_.date,
-        flags: Order.descending,
-      );
+  List<Cost> getLastTwoFillUps() {
+    return database.lastFillups();
+  }
 
-    final query = queryBuilder.build();
+  List<Cost> getThisMonthCosts() {
+    return database.getCostsForThisMonth();
+  }
 
-    final costs = query.find();
+  Vehicle? getSelectedVehicle() {
+    return database.getSelectedVehicle();
+  }
 
-    final map = <String, double>{};
-    var totalCost = 0.0;
+  double getFuelConsumption() {
+    return database.getAverageFuelConsumption();
+  }
 
-    if (costs.isNotEmpty) {
-      totalCost = costs.fold(totalCost, (previousValue, element) => previousValue + element.totalPrice);
-    }
+  List<CostInfo> getCostsStatisticsForThisMonth() {
+    return database.getCosts();
+  }
 
-    map.putIfAbsent("Total", () => totalCost);
-    map.putIfAbsent(
-      "Fuel",
-      () => costs.fold(
-        0,
-        (previousValue, element) {
-          if (element.category == "Fuel") {
-            return previousValue + element.totalPrice;
-          } else {
-            return previousValue;
-          }
-        },
-      ),
-    );
-    map.putIfAbsent(
-      "Service",
-      () => costs.fold(
-        0,
-        (previousValue, element) {
-          if (element.category == "Service") {
-            return previousValue + element.totalPrice;
-          } else {
-            return previousValue;
-          }
-        },
-      ),
-    );
-
-    return map;
+  List<CostInfo> getCostsByMonth() {
+    return database.getYearCostsByMonth();
   }
 }

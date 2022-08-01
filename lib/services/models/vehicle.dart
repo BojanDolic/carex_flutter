@@ -12,6 +12,7 @@ class Vehicle extends Equatable {
   String fuelType;
   int modelYear;
   int kwPower;
+  int odometer;
   String? imagePath;
 
   @Backlink("vehicle")
@@ -26,13 +27,14 @@ class Vehicle extends Equatable {
     this.fuelType = "",
     this.modelYear = 0000,
     this.kwPower = 0,
+    this.odometer = 0,
     this.imagePath = "",
   });
 
   bool get isNewObject => id == 0;
 
   @override
-  List<Object?> get props => [id, selected, manufacturer, model, engineDisplacement, fuelType, modelYear, kwPower, imagePath, costs];
+  List<Object?> get props => [id, selected, manufacturer, model, engineDisplacement, fuelType, modelYear, kwPower, odometer, imagePath, costs];
 
   @override
   String toString() {
