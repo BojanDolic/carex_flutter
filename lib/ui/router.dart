@@ -9,6 +9,7 @@ import 'package:carex_flutter/ui/screens/add_cost_screen.dart';
 import 'package:carex_flutter/ui/screens/add_vehicle_screen.dart';
 import 'package:carex_flutter/ui/screens/costs_screen.dart';
 import 'package:carex_flutter/ui/screens/mycar_screen.dart';
+import 'package:carex_flutter/ui/screens/settings_screen.dart';
 import 'package:carex_flutter/ui/screens/vehicles_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -83,6 +84,13 @@ Route<dynamic>? generateRoutes(RouteSettings settings) {
               cost: args?.cost,
             ),
           ),
+        );
+      }
+    case SettingsScreen.id:
+      {
+        return PageRouteBuilder(
+          transitionDuration: Duration.zero,
+          pageBuilder: (context, _, __) => SettingsScreen(),
         );
       }
     default:

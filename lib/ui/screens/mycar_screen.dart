@@ -124,6 +124,7 @@ class _MyCarScreenState extends State<MyCarScreen> {
                                   Text("Last two fuel prices:"),
                                   ListView.builder(
                                     padding: EdgeInsets.zero,
+                                    physics: const NeverScrollableScrollPhysics(),
                                     itemBuilder: (context, index) {
                                       final fillUp = state.lastFillups[index];
                                       double percentage = 0.0;
@@ -330,38 +331,3 @@ class _MyCarScreenState extends State<MyCarScreen> {
     );
   }
 }
-
-/*DropdownButton<Vehicle>(
-                                hint: Text("Select vehicle"),
-                                autofocus: false,
-                                isExpanded: true,
-                                value: state.allVehicles.firstWhere((element) => element.selected),
-                                dropdownColor: Colors.white,
-                                borderRadius: InterfaceUtil.allBorderRadius16,
-                                elevation: 2,
-                                icon: Icon(
-                                  Icons.keyboard_arrow_down_rounded,
-                                  color: theme.primaryColor,
-                                ),
-                                underline: const SizedBox(),
-                                items: state.allVehicles.map(
-                                  (vehicle) {
-                                    return DropdownMenuItem<Vehicle>(
-                                      value: vehicle,
-                                      enabled: vehicle != state.selectedVehicle,
-                                      child: ListTile(
-                                        contentPadding: EdgeInsets.symmetric(
-                                          vertical: 6,
-                                        ),
-                                        dense: true,
-                                        leading: WidgetUtil.getVehiclePicture(vehicle.imagePath, 60),
-                                        title: Text(
-                                          vehicle.model,
-                                          style: theme.textTheme.displayMedium,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ).toList(),
-                                onChanged: (vehicle) => _selectVehicle(vehicle),
-                              )*/
