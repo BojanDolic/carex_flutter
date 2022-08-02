@@ -10,6 +10,10 @@ class SettingsProvider extends InheritedWidget {
     return preferences.getCurrency();
   }
 
+  Future<bool> updateCurrency(String currency) {
+    return preferences.setCurrency(currency);
+  }
+
   @override
   bool updateShouldNotify(covariant InheritedWidget oldWidget) => true;
 

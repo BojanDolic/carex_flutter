@@ -90,7 +90,7 @@ Route<dynamic>? generateRoutes(RouteSettings settings) {
       {
         return PageRouteBuilder(
           transitionDuration: Duration.zero,
-          pageBuilder: (context, _, __) => SettingsScreen(),
+          pageBuilder: (context, _, __) => const SettingsScreen(),
         );
       }
     default:

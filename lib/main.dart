@@ -17,14 +17,24 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
 late ObjectBox objectBox;
 late SharedPreferences preferences;
+late UserPreferences userPreferences;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   objectBox = await ObjectBox.create();
   preferences = await SharedPreferences.getInstance();
+  userPreferences = UserPreferences(preferences);
+  checkDefaultValues(userPreferences);
 
   runApp(const MyApp());
+}
+
+void checkDefaultValues(UserPreferences preferences) async {
+  final currency = preferences.getCurrency();
+  if (currency.isEmpty) {
+    await preferences.setCurrency("\$");
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -33,7 +43,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SettingsProvider(
-      preferences: UserPreferences(preferences),
+      preferences: userPreferences,
       child: RepositoryProvider(
         create: (BuildContext context) => Repository(objectBox),
         child: MultiBlocProvider(

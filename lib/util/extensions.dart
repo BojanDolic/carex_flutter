@@ -1,4 +1,6 @@
+import 'package:carex_flutter/ui/widgets/settings_provider.dart';
 import 'package:carex_flutter/util/constants/data_contants.dart';
+import 'package:flutter/cupertino.dart';
 
 extension EnumExtension on CostType {
   List<String> toStringItemsList() {
@@ -9,5 +11,21 @@ extension EnumExtension on CostType {
       listOfTypes.add(_name);
     }
     return listOfTypes;
+  }
+}
+
+extension NumFormatting on num {
+  String formatNumberCurrencyToString(BuildContext context, {int digits = 2}) {
+    final settings = SettingsProvider.get(context);
+    final currency = settings.getCurrency();
+    if (digits < 1) {
+      digits = 1;
+    }
+
+    if (currency == "\$" || currency == "£") {
+      return "$currency${toStringAsFixed(digits)}";
+    } else {
+      return "${toStringAsFixed(digits)} $currency";
+    }
   }
 }

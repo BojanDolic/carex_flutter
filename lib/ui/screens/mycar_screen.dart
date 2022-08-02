@@ -11,6 +11,7 @@ import 'package:carex_flutter/ui/widgets/list_cost_item.dart';
 import 'package:carex_flutter/ui/widgets/list_date_header.dart';
 import 'package:carex_flutter/ui/widgets/settings_provider.dart';
 import 'package:carex_flutter/util/constants/ui_constants.dart';
+import 'package:carex_flutter/util/extensions.dart';
 import 'package:carex_flutter/util/util_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -121,76 +122,19 @@ class _MyCarScreenState extends State<MyCarScreen> {
                             ? Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  Text("Last two fuel prices:"),
+                                  const Text("Last two fuel prices:"),
                                   ListView.builder(
                                     padding: EdgeInsets.zero,
                                     physics: const NeverScrollableScrollPhysics(),
                                     itemBuilder: (context, index) {
                                       final fillUp = state.lastFillups[index];
-                                      double percentage = 0.0;
                                       if (index == 0 && state.lastFillups.length > 1) {
-                                        final previousFillup = state.lastFillups[index + 1];
+                                        final previousFillUp = state.lastFillups[index + 1];
 
-                                        percentage =
-                                            100 * (fillUp.pricePerLiter - state.lastFillups[1].pricePerLiter) / (state.lastFillups[1].pricePerLiter);
-
-                                        if (percentage < 0) {
-                                          // Calculate how much is saved
-                                          final totalPriceCheaper = fillUp.totalPrice;
-                                          final totalPriceExpensive = previousFillup.pricePerLiter * fillUp.litersFilled;
-
-                                          final savedPrice = totalPriceExpensive - totalPriceCheaper;
-
-                                          return Column(
-                                            children: [
-                                              ListTile(
-                                                contentPadding: EdgeInsets.zero,
-                                                leading: const Icon(
-                                                  Iconsax.gas_station3,
-                                                  color: Colors.black87,
-                                                ),
-                                                title: Text(
-                                                  "${fillUp.pricePerLiter.toStringAsFixed(2)} ${settings.getCurrency()} | ${percentage.toStringAsFixed(2)}%",
-                                                  style: TextStyle(
-                                                    color: percentage > 0 ? Colors.red : Colors.green,
-                                                  ),
-                                                ),
-                                                subtitle: Text(
-                                                  DateFormat("dd MMMM HH:MM").format(
-                                                    DateTime.parse("${fillUp.date} ${fillUp.time}"),
-                                                  ),
-                                                  style: theme.textTheme.displaySmall?.copyWith(color: Colors.black54),
-                                                ),
-                                              ),
-                                              Text(
-                                                "You saved ${savedPrice.toStringAsFixed(2)} ${settings.getCurrency()} based on previous fuel price!",
-                                              ),
-                                              const SizedBox(
-                                                height: 6,
-                                              )
-                                            ],
-                                          );
-                                        } else {
-                                          return ListTile(
-                                            contentPadding: EdgeInsets.zero,
-                                            leading: const Icon(
-                                              Iconsax.gas_station3,
-                                              color: Colors.black87,
-                                            ),
-                                            title: Text(
-                                              "${fillUp.pricePerLiter.toStringAsFixed(2)} ${settings.getCurrency()} | ${percentage.toStringAsFixed(2)}%",
-                                              style: TextStyle(
-                                                color: percentage > 0 ? Colors.red : Colors.green,
-                                              ),
-                                            ),
-                                            subtitle: Text(
-                                              DateFormat("dd MMMM HH:MM").format(
-                                                DateTime.parse("${fillUp.date} ${fillUp.time}"),
-                                              ),
-                                              style: theme.textTheme.displaySmall?.copyWith(color: Colors.black54),
-                                            ),
-                                          );
-                                        }
+                                        return LastTwoFuelPricesWidget(
+                                          fillUp: fillUp,
+                                          previousFillUp: previousFillUp,
+                                        );
                                       } else {
                                         return ListTile(
                                           contentPadding: EdgeInsets.zero,
@@ -198,7 +142,7 @@ class _MyCarScreenState extends State<MyCarScreen> {
                                             Iconsax.gas_station3,
                                             color: Colors.black87,
                                           ),
-                                          title: Text("${fillUp.pricePerLiter.toStringAsFixed(2)} ${settings.getCurrency()}"),
+                                          title: Text(fillUp.pricePerLiter.formatNumberCurrencyToString(context)),
                                           subtitle: Text(
                                             DateFormat("dd MMMM HH:MM").format(
                                               DateTime.parse("${fillUp.date} ${fillUp.time}"),
@@ -216,11 +160,14 @@ class _MyCarScreenState extends State<MyCarScreen> {
                             : Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  Text("Last fuel price:"),
+                                  const Text("Last fuel price:"),
                                   ListTile(
-                                    leading: Icon(Iconsax.dollar_square),
-                                    title:
-                                        state.lastFillups.isNotEmpty ? Text(state.lastFillups[0].pricePerLiter.toStringAsFixed(2)) : Text("No data"),
+                                    leading: const Icon(Iconsax.dollar_square),
+                                    title: state.lastFillups.isNotEmpty
+                                        ? Text(
+                                            state.lastFillups[0].pricePerLiter.formatNumberCurrencyToString(context),
+                                          )
+                                        : const Text("No data"),
                                   ),
                                 ],
                               )
@@ -270,13 +217,13 @@ class _MyCarScreenState extends State<MyCarScreen> {
             ),
           );
         } else if (state is InitialState) {
-          return Scaffold(
+          return const Scaffold(
             body: Center(
               child: CircularProgressIndicator(),
             ),
           );
         } else {
-          return Scaffold(
+          return const Scaffold(
             body: Center(
               child: Text("Error loading data!"),
             ),
@@ -286,27 +233,13 @@ class _MyCarScreenState extends State<MyCarScreen> {
     );
   }
 
-  _selectVehicle(Vehicle? vehicle) {
-    if (vehicle == null) {
-      return;
-    }
-
-    if (vehicle.selected) {
-      return;
-    }
-
-    BlocProvider.of<MyVehicleBloc>(context).add(
-      SelectVehicle(vehicle: vehicle),
-    );
-  }
-
   _editCostNavigate(BuildContext context, Vehicle vehicle, Cost cost) {
     final args = AddCostArguments(vehicle: vehicle, cost: cost);
 
     Navigator.pushNamed(context, AddCostScreen.id, arguments: args);
   }
 
-  /// Checks if last refill was cheaper than refill before that
+  /*/// Checks if last refill was cheaper than refill before that
   bool _isCheaper(List<Cost> lastFillups) {
     return lastFillups[0].pricePerLiter < lastFillups[1].pricePerLiter;
   }
@@ -323,11 +256,87 @@ class _MyCarScreenState extends State<MyCarScreen> {
     } else {
       return "";
     }
-  }
+  }*/
 
   void _deleteItem(BuildContext context, cost, Vehicle vehicle) {
     BlocProvider.of<MyVehicleBloc>(context).add(
       DeleteCost(cost: cost, selectedVehicle: vehicle),
     );
+  }
+}
+
+class LastTwoFuelPricesWidget extends StatelessWidget {
+  const LastTwoFuelPricesWidget({
+    Key? key,
+    required this.fillUp,
+    required this.previousFillUp,
+  }) : super(key: key);
+
+  final Cost fillUp;
+  final Cost previousFillUp;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(
+            Iconsax.gas_station3,
+            color: Colors.black87,
+          ),
+          title: Text(
+            "${fillUp.pricePerLiter.formatNumberCurrencyToString(context)} | ${getPercentageDifference().toStringAsFixed(2)}%",
+            style: TextStyle(
+              color: getPercentageDifference() != 0.0
+                  ? getPercentageDifference() > 0.0
+                      ? Colors.red
+                      : Colors.green
+                  : Colors.black,
+            ),
+          ),
+          subtitle: Text(
+            DateFormat("dd MMMM HH:MM").format(
+              DateTime.parse("${fillUp.date} ${fillUp.time}"),
+            ),
+            style: theme.textTheme.displaySmall?.copyWith(color: Colors.black54),
+          ),
+        ),
+        Visibility(
+          visible: getPercentageDifference() < 0,
+          child: Text(
+            "You saved ${getSavedPrice().formatNumberCurrencyToString(context)} based on previous fuel price!",
+            style: theme.textTheme.displaySmall?.copyWith(
+              fontSize: 14,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ),
+        const SizedBox(
+          height: 6,
+        )
+      ],
+    );
+  }
+
+  /// Gets percentage of difference between last two fill-up fuel prices
+  double getPercentageDifference() {
+    var percentage = 0.0;
+
+    percentage = 100 * (fillUp.pricePerLiter - previousFillUp.pricePerLiter) / (previousFillUp.pricePerLiter);
+
+    return percentage;
+  }
+
+  /// Gets how much money user saved if he filled up the vehicle
+  /// with the same amount of fuel as the last fill-up but with the fuel price
+  /// antecedent of the last fuel price.
+  double getSavedPrice() {
+    final totalPriceCheaper = fillUp.totalPrice;
+    final totalPriceExpensive = previousFillUp.pricePerLiter * fillUp.litersFilled;
+
+    final savedPrice = totalPriceExpensive - totalPriceCheaper;
+    return savedPrice;
   }
 }
