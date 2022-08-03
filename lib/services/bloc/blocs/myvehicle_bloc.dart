@@ -18,7 +18,7 @@ class MyVehicleBloc extends Bloc<MyVehicleBlocEvent, MyVehicleBlocState> {
     emit(
       LoadedVehicleState(
         selectedVehicle: _repository.getSelectedVehicle(),
-        allVehicles: _repository.getAllVehicles(),
+        allVehicles: _repository.getNonSelectedVehicles(),
         thisMonthCosts: _repository.getThisMonthCosts(),
         lastFillups: _repository.getLastTwoFillUps(),
         averageConsumption: _repository.getFuelConsumption(),
@@ -32,7 +32,7 @@ class MyVehicleBloc extends Bloc<MyVehicleBlocEvent, MyVehicleBlocState> {
     emit(
       LoadedVehicleState(
         selectedVehicle: _repository.getSelectedVehicle(),
-        allVehicles: _repository.getAllVehicles(),
+        allVehicles: _repository.getNonSelectedVehicles(),
         thisMonthCosts: _repository.getThisMonthCosts(),
         lastFillups: _repository.getLastTwoFillUps(),
         averageConsumption: _repository.getFuelConsumption(),
@@ -44,6 +44,10 @@ class MyVehicleBloc extends Bloc<MyVehicleBlocEvent, MyVehicleBlocState> {
     final vehicle = event.selectedVehicle;
 
     final indexOfItem = vehicle.costs.indexWhere((element) => element.id == event.cost.id);
+    /*final cost = vehicle.costs[indexOfItem];
+    final odometerSubtract = cost.odometer - vehicle.odometer;
+    vehicle.odometer -= odometerSubtract;
+*/
     vehicle.costs.removeAt(indexOfItem);
 
     _repository.insertVehicle(vehicle);
@@ -51,7 +55,7 @@ class MyVehicleBloc extends Bloc<MyVehicleBlocEvent, MyVehicleBlocState> {
     add(
       LoadVehicles(
         selectedVehicle: vehicle,
-        vehicles: _repository.getAllVehicles(),
+        vehicles: _repository.getNonSelectedVehicles(),
       ),
     );
   }

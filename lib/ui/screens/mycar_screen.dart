@@ -51,7 +51,7 @@ class _MyCarScreenState extends State<MyCarScreen> {
                   return;
                 }
                 final args = AddCostArguments(
-                  vehicle: selectedVehicle,
+                  vehicle: state.selectedVehicle,
                 );
                 Navigator.pushNamed(context, AddCostScreen.id, arguments: args);
               },
@@ -73,41 +73,90 @@ class _MyCarScreenState extends State<MyCarScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Visibility(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 3,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 9,
                       ),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: InterfaceUtil.allBorderRadius16,
-                          color: Colors.white,
-                        ),
-                        child: vehicles.isNotEmpty
-                            ? Column(
-                                children: [
-                                  WidgetUtil.getVehiclePicture(selectedVehicle?.imagePath, 60),
-                                  Text("${state.averageConsumption.toStringAsFixed(2)} l/100km")
-                                ],
-                              )
-                            : Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text("You need to add vehicle."),
-                                  MaterialButton(
-                                    onPressed: () {},
-                                    child: Icon(Icons.add),
-                                    color: theme.primaryColor,
-                                    elevation: 0,
-                                    shape: InterfaceUtil.allCornerRadiusRoundedRectangle16,
-                                  ),
-                                ],
-                              ),
+                      decoration: BoxDecoration(
+                        borderRadius: InterfaceUtil.allBorderRadius16,
+                        color: Colors.white,
                       ),
+                      child: selectedVehicle != null
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Row(
+                                  children: [
+                                    WidgetUtil.getVehiclePicture(selectedVehicle.imagePath, 60),
+                                    const SizedBox(
+                                      width: 24,
+                                    ),
+                                    Text("${state.averageConsumption.toStringAsFixed(2)} l/100km")
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: 6,
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    TextButton(
+                                      onPressed: () {},
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: const [
+                                          Icon(
+                                            Iconsax.graph,
+                                          ),
+                                          SizedBox(
+                                            width: 9,
+                                          ),
+                                          Text(
+                                            "Statistics",
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 9,
+                                    ),
+                                    TextButton(
+                                      onPressed: () => openCarSelectionDialog(context, selectedVehicle, vehicles),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Iconsax.car,
+                                          ),
+                                          const SizedBox(
+                                            width: 9,
+                                          ),
+                                          Text(
+                                            "Change vehicle",
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("You need to add vehicle."),
+                                MaterialButton(
+                                  onPressed: () {},
+                                  child: Icon(Icons.add),
+                                  color: theme.primaryColor,
+                                  elevation: 0,
+                                  shape: InterfaceUtil.allCornerRadiusRoundedRectangle16,
+                                ),
+                              ],
+                            ),
                     ),
                   ),
                   const SizedBox(
@@ -262,6 +311,53 @@ class _MyCarScreenState extends State<MyCarScreen> {
     BlocProvider.of<MyVehicleBloc>(context).add(
       DeleteCost(cost: cost, selectedVehicle: vehicle),
     );
+  }
+
+  openCarSelectionDialog(BuildContext context, Vehicle vehicle, List<Vehicle> vehicles) {
+    if (vehicles.isEmpty) {
+      SnackBarUtil.showInfoSnackBar(context, "There are no other vehicles!");
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title: const Text("Select vehicle"),
+          shape: InterfaceUtil.allCornerRadiusRoundedRectangle16,
+          children: List<Widget>.generate(
+            vehicles.length,
+            (index) {
+              final _vehicle = vehicles[index];
+              return SimpleDialogOption(
+                onPressed: () => _selectVehicle(_vehicle),
+                child: Row(
+                  children: [
+                    WidgetUtil.getVehiclePicture(_vehicle.imagePath, 50),
+                    const SizedBox(
+                      width: 9,
+                    ),
+                    Text(
+                      _vehicle.model,
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  /// Passes event to bloc to select vehicle and closes dialog
+  _selectVehicle(Vehicle vehicle) {
+    if (vehicle.id == 0) {
+      return;
+    }
+    BlocProvider.of<MyVehicleBloc>(context).add(
+      SelectVehicle(vehicle: vehicle),
+    );
+    Navigator.pop(context);
   }
 }
 

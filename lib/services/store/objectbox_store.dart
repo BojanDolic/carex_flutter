@@ -24,6 +24,18 @@ class ObjectBox {
     return ObjectBox._create(store);
   }
 
+  List<Vehicle> getAllNonSelectedVehicles() {
+    var vehicles = <Vehicle>[];
+
+    final _queryBuilder = _vehiclesStore.query(Vehicle_.selected.equals(false));
+
+    final _query = _queryBuilder.build();
+
+    vehicles = _query.find();
+    _query.close();
+    return vehicles;
+  }
+
   // Returns selected vehicle, else returns null
   Vehicle? getSelectedVehicle() {
     final _queryBuilder = _vehiclesStore.query(Vehicle_.selected.equals(true));

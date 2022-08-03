@@ -19,6 +19,10 @@ class Repository {
     return _vehiclesStore.getAll();
   }
 
+  List<Vehicle> getNonSelectedVehicles() {
+    return database.getAllNonSelectedVehicles();
+  }
+
   Stream<Vehicle> getAllVehiclesStream() {
     final _queryBuilder = _vehiclesStore.query();
     final _query = _queryBuilder.build();
