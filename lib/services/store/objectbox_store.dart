@@ -24,6 +24,7 @@ class ObjectBox {
     return ObjectBox._create(store);
   }
 
+  /// Gets all vehicles from the database which are not selected
   List<Vehicle> getAllNonSelectedVehicles() {
     var vehicles = <Vehicle>[];
 
@@ -34,6 +35,60 @@ class ObjectBox {
     vehicles = _query.find();
     _query.close();
     return vehicles;
+  }
+
+  /// Function selects vehicle from the database
+  /// If there exists vehicle that is selected
+  /// it will be deselected automatically
+  ///
+  /// [vehicle] - Vehicle to select
+  void selectVehicle(Vehicle vehicle) {
+    final vehicles = getAllVehicles();
+    final modifiedVehicles = vehicles.map((_vehicle) {
+      if (_vehicle.id == vehicle.id) {
+        _vehicle.selected = true;
+      } else {
+        _vehicle.selected = false;
+      }
+      return _vehicle;
+    });
+    _vehiclesStore.putMany(modifiedVehicles.toList());
+  }
+
+  /// Gets all vehicles in database
+  List<Vehicle> getAllVehicles() {
+    return _vehiclesStore.getAll();
+  }
+
+  /// Inserts new vehicle into database
+  void insertVehicle(Vehicle vehicle) {
+    _vehiclesStore.put(vehicle);
+  }
+
+  /// Removes vehicle from database
+  void deleteVehicle(Vehicle vehicle) {
+    _vehiclesStore.remove(vehicle.id);
+  }
+
+  List<Cost> getAllCosts() {
+    final vehicle = getSelectedVehicle();
+    var costs = <Cost>[];
+
+    if (vehicle == null) {
+      return costs;
+    }
+
+    final queryBuilder = _costsStore.query(Cost_.vehicle.equals(vehicle.id))
+      ..order(
+        Cost_.date,
+        flags: Order.descending,
+      );
+
+    final query = queryBuilder.build();
+
+    costs = query.find();
+    query.close();
+    return costs;
   }
 
   // Returns selected vehicle, else returns null
