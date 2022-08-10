@@ -1,6 +1,7 @@
 import 'package:carex_flutter/ui/screens/costs_screen.dart';
 import 'package:carex_flutter/ui/screens/mycar_screen.dart';
 import 'package:carex_flutter/ui/screens/settings_screen.dart';
+import 'package:carex_flutter/ui/screens/statistics_screen.dart';
 import 'package:carex_flutter/ui/screens/vehicles_screen.dart';
 import 'package:carex_flutter/util/constants/color_constants.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +17,7 @@ class CarexDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    //final theme = Theme.of(context);
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -78,6 +79,20 @@ class CarexDrawer extends StatelessWidget {
                   leading: const Icon(Iconsax.dollar_circle),
                   onTap: () => _handleDrawerTap(context, CostsScreen.id),
                   selected: currentRoute == CostsScreen.id,
+                ),
+                ListTile(
+                  style: ListTileStyle.list,
+                  title: const Text(
+                    "Statistics",
+                  ),
+                  shape: selectedTileShape,
+                  iconColor: Colors.black,
+                  dense: true,
+                  selectedTileColor: mainColorLight.withOpacity(0.15),
+                  selectedColor: mainColorLight,
+                  leading: const Icon(Iconsax.graph4),
+                  onTap: () => _handleDrawerTap(context, StatisticsScreen.id),
+                  selected: currentRoute == StatisticsScreen.id,
                 ),
                 ListTile(
                   style: ListTileStyle.list,

@@ -1,6 +1,7 @@
 import 'package:carex_flutter/objectbox.g.dart';
 import 'package:carex_flutter/services/models/cost.dart';
 import 'package:carex_flutter/services/models/cost_info.dart';
+import 'package:carex_flutter/services/models/statistic_data.dart';
 import 'package:carex_flutter/services/models/vehicle.dart';
 import 'package:carex_flutter/util/calculator.dart';
 import 'package:carex_flutter/util/util_functions.dart';
@@ -286,6 +287,179 @@ class ObjectBox {
     _query.close();
 
     return average;
+  }
+
+  List<StatisticData> getFuelLitersFilledForCurrentMonth() {
+    final currentDate = DateTime.now();
+    final startOfMonth = DateTime(currentDate.year, currentDate.month);
+    const costType = "Fuel";
+    final vehicle = getSelectedVehicle();
+    var statistics = <StatisticData>[];
+
+    if (vehicle == null) {
+      return statistics;
+    }
+
+    final _queryBuilder = _costsStore.query(
+      Cost_.vehicle
+          .equals(vehicle.id)
+          .and(
+            Cost_.category.equals(costType),
+          )
+          .and(
+            Cost_.date.lessOrEqual(ParserUtil.parseDateISO8601(currentDate)),
+          )
+          .and(
+            Cost_.date.greaterOrEqual(
+              ParserUtil.parseDateISO8601(startOfMonth),
+            ),
+          ),
+    )..order(Cost_.date);
+
+    final query = _queryBuilder.build();
+
+    statistics = query
+        .find()
+        .map(
+          (e) => StatisticData.data(
+            dataName: e.date,
+            data: e.litersFilled,
+          ),
+        )
+        .toList();
+
+    query.close();
+    return statistics;
+  }
+
+  List<StatisticData> getSummedCostsFor6Months() {
+    final vehicle = getSelectedVehicle();
+    var statistics = <StatisticData>[];
+    final currentDate = DateTime.now();
+    final currentMonthStart = DateTime(currentDate.year, currentDate.month);
+    final sixMonthsDate = Jiffy(currentMonthStart).subtract(months: 6).dateTime;
+
+    if (vehicle == null) {
+      return statistics;
+    }
+
+    final baseCondition = Cost_.vehicle
+        .equals(
+          vehicle.id,
+        )
+        .and(
+          Cost_.date.lessThan(
+            ParserUtil.parseDateISO8601(
+              currentMonthStart,
+            ),
+          ),
+        )
+        .and(
+          Cost_.date.greaterOrEqual(
+            ParserUtil.parseDateISO8601(
+              sixMonthsDate,
+            ),
+          ),
+        );
+
+    final fuelQueryBuilder = _costsStore.query(
+      baseCondition.and(
+        Cost_.category.equals("Fuel"),
+      ),
+    );
+    final serviceQueryBuilder = _costsStore.query(
+      baseCondition.and(
+        Cost_.category.equals("Service"),
+      ),
+    );
+    final maintenanceQueryBuilder = _costsStore.query(
+      baseCondition.and(
+        Cost_.category.equals("Maintenance"),
+      ),
+    );
+    final registrationQueryBuilder = _costsStore.query(
+      baseCondition.and(
+        Cost_.category.equals("Registration"),
+      ),
+    );
+    final parkingQueryBuilder = _costsStore.query(
+      baseCondition.and(
+        Cost_.category.equals("Parking"),
+      ),
+    );
+
+    final fuelQuery = fuelQueryBuilder.build();
+    final fuelValue = fuelQuery.property(Cost_.totalPrice).sum();
+
+    final serviceQuery = serviceQueryBuilder.build();
+    final serviceValue = serviceQuery.property(Cost_.totalPrice).sum();
+
+    final maintenanceQuery = maintenanceQueryBuilder.build();
+    final maintenanceValue = maintenanceQuery.property(Cost_.totalPrice).sum();
+
+    final registrationQuery = registrationQueryBuilder.build();
+    final registrationValue = registrationQuery.property(Cost_.totalPrice).sum();
+
+    final parkingQuery = parkingQueryBuilder.build();
+    final parkingValue = parkingQuery.property(Cost_.totalPrice).sum();
+
+    if (fuelValue != 0.0) {
+      statistics.add(
+        StatisticData.data(dataName: "Fuel", data: fuelValue),
+      );
+    }
+    statistics.add(
+      StatisticData.data(dataName: "Service", data: serviceValue),
+    );
+    statistics.add(
+      StatisticData.data(dataName: "Maintenance", data: maintenanceValue),
+    );
+    statistics.add(
+      StatisticData.data(dataName: "Registration", data: registrationValue),
+    );
+    statistics.add(
+      StatisticData.data(dataName: "Parking", data: parkingValue),
+    );
+
+    return statistics;
+  }
+
+  StatisticData getKilometersTravelledPastMonth() {
+    var kilometersTravelled = StatisticData.data(dataName: "", data: 0.0);
+    final currentDate = DateTime.now();
+    final startOfMonth = DateTime(currentDate.year, currentDate.month);
+    final previousMonthStart = Jiffy(startOfMonth).subtract(months: 1).dateTime;
+    final vehicle = getSelectedVehicle();
+
+    if (vehicle == null) {
+      return kilometersTravelled;
+    }
+    final queryBuilder = _costsStore.query(Cost_.vehicle
+        .equals(vehicle.id)
+        .and(Cost_.date.lessThan(
+          ParserUtil.parseDateISO8601(startOfMonth),
+        ))
+        .and(Cost_.date.greaterOrEqual(
+          ParserUtil.parseDateISO8601(previousMonthStart),
+        )));
+
+    final query = queryBuilder.build();
+    final costs = query.find();
+
+    if (costs.isEmpty || costs.length == 1) {
+      return kilometersTravelled;
+    }
+
+    final firstCost = costs.first;
+    final lastCost = costs.last;
+
+    int finalKilometers = lastCost.odometer - firstCost.odometer;
+    kilometersTravelled = StatisticData.data(
+      dataName: "Kilometers travelled",
+      data: finalKilometers.toDouble(),
+    );
+
+    return kilometersTravelled;
   }
 
   List<CostInfo> getCosts() {

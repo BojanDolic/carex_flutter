@@ -5,6 +5,7 @@ import 'package:carex_flutter/services/models/cost.dart';
 import 'package:carex_flutter/services/models/cost_arguments.dart';
 import 'package:carex_flutter/services/models/vehicle.dart';
 import 'package:carex_flutter/ui/screens/add_cost_screen.dart';
+import 'package:carex_flutter/ui/screens/statistics_screen.dart';
 import 'package:carex_flutter/ui/widgets/drawer.dart';
 import 'package:carex_flutter/ui/widgets/heading_container.dart';
 import 'package:carex_flutter/ui/widgets/list_cost_item.dart';
@@ -104,7 +105,7 @@ class _MyCarScreenState extends State<MyCarScreen> {
                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: [
                                     TextButton(
-                                      onPressed: () {},
+                                      onPressed: () => Navigator.pushNamed(context, StatisticsScreen.id),
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: const [
@@ -127,11 +128,11 @@ class _MyCarScreenState extends State<MyCarScreen> {
                                       onPressed: () => openCarSelectionDialog(context, selectedVehicle, vehicles),
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
+                                        children: const [
                                           Icon(
                                             Iconsax.car,
                                           ),
-                                          const SizedBox(
+                                          SizedBox(
                                             width: 9,
                                           ),
                                           Text(

@@ -1,5 +1,6 @@
 import 'package:carex_flutter/services/models/cost.dart';
 import 'package:carex_flutter/services/models/cost_info.dart';
+import 'package:carex_flutter/services/models/statistic_data.dart';
 import 'package:carex_flutter/services/models/vehicle.dart';
 import 'package:carex_flutter/services/store/objectbox_store.dart';
 
@@ -66,5 +67,22 @@ class Repository {
   /// Get total costs for past 12 months grouped by month
   List<CostInfo> getCostsByMonth() {
     return database.getYearCostsByMonth();
+  }
+
+  /// Get fuel liters statistic for current month
+  List<StatisticData> getFuelLitersForThisMonth() {
+    return database.getFuelLitersFilledForCurrentMonth();
+  }
+
+  /// Get summed costs total price grouped by their category for
+  /// previous six months
+  List<StatisticData> getSummedCostsForSixMonths() {
+    return database.getSummedCostsFor6Months();
+  }
+
+  /// Get number of kilometers traveled in previous month
+  /// based on the odometer value
+  StatisticData getKilometersTravelledForPreviousMonth() {
+    return database.getKilometersTravelledPastMonth();
   }
 }
