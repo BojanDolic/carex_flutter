@@ -30,9 +30,23 @@ List<String> getModelYears() {
 
 List<String> getEngineDisplacements() => engineDisplacements;
 
+const currencies = [
+  "USD | \$",
+  "BAM | KM",
+  "GBP |  £",
+];
+
 const fuelTypes = [
   "Diesel",
   "Gasoline/Petrol",
+];
+
+const costTypes = [
+  "Fuel",
+  "Service",
+  "Maintenance",
+  "Parking",
+  "Registration",
 ];
 
 const engineDisplacements = [

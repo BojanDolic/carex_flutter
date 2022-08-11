@@ -1,3 +1,4 @@
+import 'package:carex_flutter/services/models/cost.dart';
 import 'package:carex_flutter/services/models/vehicle.dart';
 import 'package:equatable/equatable.dart';
 
@@ -28,4 +29,17 @@ class SelectVehicle extends MyVehicleBlocEvent {
 
   @override
   List<Object?> get props => [vehicle];
+}
+
+class DeleteCost extends MyVehicleBlocEvent {
+  final Cost cost;
+  final Vehicle selectedVehicle;
+
+  const DeleteCost({
+    required this.cost,
+    required this.selectedVehicle,
+  });
+
+  @override
+  List<Object?> get props => [cost, selectedVehicle];
 }

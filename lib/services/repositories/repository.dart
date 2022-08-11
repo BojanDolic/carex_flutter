@@ -1,60 +1,88 @@
-import 'package:carex_flutter/objectbox.g.dart';
+import 'package:carex_flutter/services/models/cost.dart';
+import 'package:carex_flutter/services/models/cost_info.dart';
+import 'package:carex_flutter/services/models/statistic_data.dart';
 import 'package:carex_flutter/services/models/vehicle.dart';
 import 'package:carex_flutter/services/store/objectbox_store.dart';
 
 class Repository {
-  late Box<Vehicle> _vehiclesBox;
+  final ObjectBox database;
 
-  final ObjectBox objectBox;
+  Repository(this.database);
 
-  Repository(this.objectBox) {
-    _vehiclesBox = objectBox.store.box<Vehicle>();
-  }
-
+  /// Get all vehicles from database
   List<Vehicle> getAllVehicles() {
-    return _vehiclesBox.getAll();
+    return database.getAllVehicles();
   }
 
-  Stream<Vehicle> getAllVehiclesStream() {
-    final _queryBuilder = _vehiclesBox.query();
-    final _query = _queryBuilder.build();
-    return _query.stream();
+  /// Get all vehicles except "selected" vehicle
+  List<Vehicle> getNonSelectedVehicles() {
+    return database.getAllNonSelectedVehicles();
   }
 
+  /// Insert [vehicle] into database
   void insertVehicle(Vehicle vehicle) {
-    _vehiclesBox.put(vehicle);
+    return database.insertVehicle(vehicle);
   }
 
+  /// Remove [vehicle] from database
   void deleteVehicle(Vehicle vehicle) {
-    _vehiclesBox.remove(vehicle.id);
+    return database.deleteVehicle(vehicle);
   }
 
-  /// Function iterates through all vehicles in database and deselects all of them except
-  /// the vehicle which needs to be marked as selected
+  /// Marks vehicle as "selected"
   void selectVehicle(Vehicle vehicle) {
-    final vehicles = getAllVehicles();
-    final modifiedVehicles = vehicles.map((_vehicle) {
-      if (_vehicle.id == vehicle.id) {
-        _vehicle.selected = true;
-      } else {
-        _vehicle.selected = false;
-      }
-      return _vehicle;
-    });
-    _vehiclesBox.putMany(modifiedVehicles.toList());
+    return database.selectVehicle(vehicle);
   }
 
-  Vehicle? getSelectedVehicle() {
-    final _queryBuilder = _vehiclesBox.query(Vehicle_.selected.equals(true));
+  /// Get all costs for currently selected vehicle
+  List<Cost> getAllCosts() {
+    return database.getAllCosts();
+  }
 
-    final query = _queryBuilder.build();
-    try {
-      final vehicle = query.find().first;
-      query.close();
-      return vehicle;
-    } catch (badState) {
-      query.close();
-      return null;
-    }
+  /// Get last two fuel fill-ups
+  List<Cost> getLastTwoFillUps() {
+    return database.lastFillups();
+  }
+
+  /// Get costs for current month only
+  List<Cost> getThisMonthCosts() {
+    return database.getCostsForThisMonth();
+  }
+
+  /// Get selected vehicle
+  Vehicle? getSelectedVehicle() {
+    return database.getSelectedVehicle();
+  }
+
+  /// Get average fuel consumption between last two fill-ups
+  double getFuelConsumption() {
+    return database.getAverageFuelConsumption();
+  }
+
+  /// Get costs grouped by category for current month only
+  List<CostInfo> getCostsStatisticsForThisMonth() {
+    return database.getCosts();
+  }
+
+  /// Get total costs for past 12 months grouped by month
+  List<CostInfo> getCostsByMonth() {
+    return database.getYearCostsByMonth();
+  }
+
+  /// Get fuel liters statistic for current month
+  List<StatisticData> getFuelLitersForThisMonth() {
+    return database.getFuelLitersFilledForCurrentMonth();
+  }
+
+  /// Get summed costs total price grouped by their category for
+  /// previous six months
+  List<StatisticData> getSummedCostsForSixMonths() {
+    return database.getSummedCostsFor6Months();
+  }
+
+  /// Get number of kilometers traveled in previous month
+  /// based on the odometer value
+  StatisticData getKilometersTravelledForPreviousMonth() {
+    return database.getKilometersTravelledPastMonth();
   }
 }

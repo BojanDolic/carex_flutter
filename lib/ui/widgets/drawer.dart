@@ -1,8 +1,11 @@
 import 'package:carex_flutter/ui/screens/costs_screen.dart';
 import 'package:carex_flutter/ui/screens/mycar_screen.dart';
+import 'package:carex_flutter/ui/screens/settings_screen.dart';
+import 'package:carex_flutter/ui/screens/statistics_screen.dart';
 import 'package:carex_flutter/ui/screens/vehicles_screen.dart';
 import 'package:carex_flutter/util/constants/color_constants.dart';
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 
 class CarexDrawer extends StatelessWidget {
   const CarexDrawer({
@@ -14,7 +17,7 @@ class CarexDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    //final theme = Theme.of(context);
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -45,7 +48,7 @@ class CarexDrawer extends StatelessWidget {
                   iconColor: Colors.black,
                   textColor: Colors.black,
                   selectedTileColor: mainColorLight.withOpacity(0.15),
-                  leading: Icon(Icons.apps_rounded),
+                  leading: const Icon(Iconsax.category_2),
                   onTap: () => _handleDrawerTap(context, MyCarScreen.id),
                   selected: currentRoute == MyCarScreen.id,
                 ),
@@ -59,7 +62,7 @@ class CarexDrawer extends StatelessWidget {
                   selectedTileColor: mainColorLight.withOpacity(0.15),
                   selectedColor: mainColorLight,
                   iconColor: Colors.black,
-                  leading: Icon(Icons.car_rental),
+                  leading: const Icon(Iconsax.car),
                   onTap: () => _handleDrawerTap(context, VehiclesScreen.id),
                   selected: currentRoute == VehiclesScreen.id,
                 ),
@@ -73,7 +76,66 @@ class CarexDrawer extends StatelessWidget {
                   dense: true,
                   selectedTileColor: mainColorLight.withOpacity(0.15),
                   selectedColor: mainColorLight,
-                  leading: const Icon(Icons.attach_money_rounded),
+                  leading: const Icon(Iconsax.dollar_circle),
+                  onTap: () => _handleDrawerTap(context, CostsScreen.id),
+                  selected: currentRoute == CostsScreen.id,
+                ),
+                ListTile(
+                  style: ListTileStyle.list,
+                  title: const Text(
+                    "Statistics",
+                  ),
+                  shape: selectedTileShape,
+                  iconColor: Colors.black,
+                  dense: true,
+                  selectedTileColor: mainColorLight.withOpacity(0.15),
+                  selectedColor: mainColorLight,
+                  leading: const Icon(Iconsax.graph4),
+                  onTap: () => _handleDrawerTap(context, StatisticsScreen.id),
+                  selected: currentRoute == StatisticsScreen.id,
+                ),
+                ListTile(
+                  style: ListTileStyle.list,
+                  title: const Text(
+                    "Gas stations map",
+                  ),
+                  shape: selectedTileShape,
+                  iconColor: Colors.black,
+                  dense: true,
+                  selectedTileColor: mainColorLight.withOpacity(0.15),
+                  selectedColor: mainColorLight,
+                  leading: const Icon(Iconsax.location),
+                  onTap: () => _handleDrawerTap(context, CostsScreen.id),
+                  selected: currentRoute == CostsScreen.id,
+                ),
+                const Divider(
+                  thickness: 2,
+                ),
+                ListTile(
+                  style: ListTileStyle.list,
+                  title: const Text(
+                    "Settings",
+                  ),
+                  shape: selectedTileShape,
+                  iconColor: Colors.black,
+                  dense: true,
+                  selectedTileColor: mainColorLight.withOpacity(0.15),
+                  selectedColor: mainColorLight,
+                  leading: const Icon(Iconsax.setting4),
+                  onTap: () => _handleDrawerTap(context, SettingsScreen.id),
+                  selected: currentRoute == SettingsScreen.id,
+                ),
+                ListTile(
+                  style: ListTileStyle.list,
+                  title: const Text(
+                    "About",
+                  ),
+                  shape: selectedTileShape,
+                  iconColor: Colors.black,
+                  dense: true,
+                  selectedTileColor: mainColorLight.withOpacity(0.15),
+                  selectedColor: mainColorLight,
+                  leading: const Icon(Iconsax.info_circle),
                   onTap: () => _handleDrawerTap(context, CostsScreen.id),
                   selected: currentRoute == CostsScreen.id,
                 ),

@@ -1,10 +1,18 @@
+import 'package:carex_flutter/services/bloc/blocs/costs_bloc.dart';
+import 'package:carex_flutter/services/bloc/blocs/myvehicle_bloc.dart';
+import 'package:carex_flutter/services/bloc/blocs/statistics_bloc.dart';
+import 'package:carex_flutter/services/bloc/events/costs_bloc_events.dart';
 import 'package:carex_flutter/services/bloc/events/myvehicle_bloc_events.dart';
-import 'package:carex_flutter/services/bloc/myvehicle_bloc.dart';
+import 'package:carex_flutter/services/bloc/events/statistics_bloc_events.dart';
+import 'package:carex_flutter/services/models/cost_arguments.dart';
 import 'package:carex_flutter/services/models/vehicle.dart';
 import 'package:carex_flutter/services/repositories/repository.dart';
+import 'package:carex_flutter/ui/screens/add_cost_screen.dart';
 import 'package:carex_flutter/ui/screens/add_vehicle_screen.dart';
 import 'package:carex_flutter/ui/screens/costs_screen.dart';
 import 'package:carex_flutter/ui/screens/mycar_screen.dart';
+import 'package:carex_flutter/ui/screens/settings_screen.dart';
+import 'package:carex_flutter/ui/screens/statistics_screen.dart';
 import 'package:carex_flutter/ui/screens/vehicles_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -55,7 +63,48 @@ Route<dynamic>? generateRoutes(RouteSettings settings) {
       {
         return PageRouteBuilder(
           transitionDuration: Duration.zero,
-          pageBuilder: (context, _, __) => const CostsScreen(),
+          maintainState: false,
+          pageBuilder: (context, _, __) => BlocProvider<CostsBloc>(
+            create: (context) => CostsBloc(
+              RepositoryProvider.of<Repository>(context),
+            )..add(
+                const LoadCosts(),
+              ),
+            child: const CostsScreen(),
+          ),
+        );
+      }
+    case AddCostScreen.id:
+      {
+        final args = (settings.arguments) as AddCostArguments?;
+        return MaterialPageRoute(
+          builder: (context) => BlocProvider<CostsBloc>(
+            create: (context) => CostsBloc(
+              RepositoryProvider.of<Repository>(context),
+            ),
+            child: AddCostScreen(
+              selectedVehicle: args?.vehicle,
+              cost: args?.cost,
+            ),
+          ),
+        );
+      }
+    case SettingsScreen.id:
+      {
+        return PageRouteBuilder(
+          transitionDuration: Duration.zero,
+          pageBuilder: (context, _, __) => const SettingsScreen(),
+        );
+      }
+    case StatisticsScreen.id:
+      {
+        return MaterialPageRoute(
+          builder: (context) => BlocProvider<StatisticsBloc>(
+            create: (context) => StatisticsBloc(
+              RepositoryProvider.of<Repository>(context),
+            )..add(const LoadStatistics()),
+            child: const StatisticsScreen(),
+          ),
         );
       }
     default:
