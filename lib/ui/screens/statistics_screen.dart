@@ -30,24 +30,9 @@ class ChartData {
 late UserPreferences settings;
 
 class _StatisticsScreenState extends State<StatisticsScreen> {
-  final chartDummyData = <int, int>{
-    01: 450,
-    02: 860,
-    03: 520,
-    04: 1132,
-    05: 986,
-    06: 844,
-    07: 1236,
-    08: 2312,
-    09: 756,
-    10: 689,
-    11: 543,
-    12: 752,
-  };
-
   var fuelRefillsExpanded = false;
   var kilometersExpanded = false;
-  var expanded = false;
+  var costsExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -134,10 +119,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                           ),
                           ExpandableListHeader(
                             headerText: "Expenses of the previous six months",
-                            isExpanded: expanded,
+                            isExpanded: costsExpanded,
                             onExpanded: (_, __) {
                               setState(() {
-                                expanded = !expanded;
+                                costsExpanded = !costsExpanded;
                               });
                             },
                             body: summedCostsSixMonths.isNotEmpty
